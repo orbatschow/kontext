@@ -56,6 +56,8 @@ your operating system:
 |--------------------------------|--------------------------------|-----------------------------------|
 | ~/.config/kontext/kontext.yaml | ~/.config/kontext/kontext.yaml | LocalAppData\kontext\kontext.yaml |
 
+All paths are build by [xdg](https://github.com/adrg/xdg).
+
 ## Contributing
 
 Contributions are always welcome, have a look at the [contributing](docs/contributing.md) guidelines to get started.
