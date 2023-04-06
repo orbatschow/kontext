@@ -16,11 +16,20 @@ Kontext has several features, that will ease your life when dealing with differe
 
 ### Groups
 
-TODO
+Groups refer to one or more sources and can be used to bundle kubeconfig files together. You
+can switch between groups and enable or disable multiple sources at once. Get help via:
+
+```shell
+kontext get group --help
+kontext set group --help
+```
 
 ### Sources
 
-TODO
+Source include or exclude kubeconfig files as a glob pattern. A source always computes all
+included sources files first and then removes all duplicates. After the include section has
+been computed the same happens for all files, that shall be excluded. Take a look at the 
+[example](./example/kontext.yaml) to understand sources in depth.
 
 ## Installation
 
