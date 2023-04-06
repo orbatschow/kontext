@@ -1,4 +1,4 @@
-# kubepost
+# kontext
 
 <img align="right" alt="kubepost" width="180px" src="assets/gopher.png">
 
