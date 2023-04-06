@@ -14,6 +14,16 @@ Kontext is a single binary application, that takes yet another approach on kubec
 
 Kontext has several features, that will ease your life when dealing with different kubeconfig files:
 
+### Context
+
+Switch between a context by just calling the binary, without any arguments. It will read your current kubeconfig file
+and list all available options. To get more information about setting and getting a context run:
+
+```shell
+kontext get context --help
+kontext set context --help
+```
+
 ### Groups
 
 Groups refer to one or more sources and can be used to bundle kubeconfig files together. You
