@@ -1,0 +1,17 @@
+name: default
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+jobs:
+  quality:
+    uses: ./.github/workflows/quality.yaml
+
+  build:
+    needs: [ quality ]
+    uses: ./.github/workflows/build.yaml

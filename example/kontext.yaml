@@ -1,0 +1,46 @@
+global:
+
+groups:
+  default:
+    sources:
+      - default
+
+  dev:
+    sources:
+      - dev
+
+  prod:
+    sources:
+      - prod
+
+  orbatschow:
+    sources:
+      - local
+      - private
+
+sources:
+  default:
+    include:
+      - /home/orbatschow/.config/kubernetes/**/*.yaml
+    exclude:
+      - /home/orbatschow/.config/kubernetes/**/*prod*.yaml
+
+  dev:
+    include:
+      - /home/orbatschow/.config/kubernetes/dev/**/*.yaml
+    exclude:
+      - /home/orbatschow/.config/kubernetes/dev/**/*skip*.yaml
+
+  prod:
+    include:
+      - /home/orbatschow/.config/kubernetes/prod/**/*.yaml
+    exclude:
+      - /home/orbatschow/.config/kubernetes/prod/**/*skip*.yaml
+
+  local:
+    include:
+      - /home/orbatschow/.config/kubernetes/orbatschow/**/*.yaml
+
+  private:
+    include:
+      - /home/orbatschow/.config/kubernetes/private/**/*.yaml
