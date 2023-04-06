@@ -38,19 +38,23 @@ kontext set group --help
 
 Source include or exclude kubeconfig files as a glob pattern. A source always computes all
 included sources files first and then removes all duplicates. After the include section has
-been computed the same happens for all files, that shall be excluded. Take a look at the 
+been computed the same happens for all files, that shall be excluded. Take a look at the
 [example](./example/kontext.yaml) to understand sources in depth.
 
 ## Installation
 
-At the moment kontext is distributed as a single binary and can be downloaded from the 
+At the moment kontext is distributed as a single binary and can be downloaded from the
 [releases](https://github.com/orbatschow/kontext/releases).
 
 ## Configuration
 
 Have a look at the [example](./example/kontext.yaml) file. It should be well described and show you
-how to configure kontext.
+how to configure kontext. Kontext will look at different paths for the configuration file, depending on
+your operating system: 
 
+| Linux                          | MacOS                          | Windows                           |
+|--------------------------------|--------------------------------|-----------------------------------|
+| ~/.config/kontext/kontext.yaml | ~/.config/kontext/kontext.yaml | LocalAppData\kontext\kontext.yaml |
 
 ## Contributing
 
