@@ -14,17 +14,25 @@ global:
 # define backup settings for old kubeconfig files
 backup:
   enabled: true
+  location: ~/.local/share/kontext
+  revisions: 10
 
 # groups define a set of sources to include
 groups:
   # a group named "default"
   - name: default
+    # set a default context, that will be activated as soon as you switch to this group
+    # note: the context has to be available within this group
+    context: kind-kind
     # all sources referred by this group
     sources:
       - primary
 
   # another group called dev, that refers to the sources of multiple customers
   - name: dev
+    # set a default context, that will be activated as soon as you switch to this group
+    # note: the context has to be available within this group
+    context: dev-01
     sources:
       - customer-a.dev
       - customer-b.dev

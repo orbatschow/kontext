@@ -27,12 +27,14 @@ type Source struct {
 
 type Group struct {
 	Name    string   `json:"name"`
+	Context string   `json:"context,omitempty"`
 	Sources []string `json:"sources"`
 }
 
 type Backup struct {
-	Enabled   bool `json:"enabled"`
-	Revisions *int `json:"revisions,omitempty"`
+	Enabled   bool   `json:"enabled"`
+	Location  string `json:"location,omitempty"`
+	Revisions *int   `json:"revisions,omitempty"`
 }
 
 type History struct {
@@ -90,6 +92,7 @@ func Read() error {
 
 func expandEnvironment(config *Config) {
 	config.Global.Kubeconfig = os.ExpandEnv(config.Global.Kubeconfig)
+	config.Backup.Location = os.ExpandEnv(config.Backup.Location)
 
 	for i, source := range config.Sources {
 		for j, include := range source.Include {

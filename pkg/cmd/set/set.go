@@ -92,8 +92,13 @@ func NewSetContextCommand(_ *cobra.Command, args []string) {
 
 func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "set",
+		Use:   "set [name]",
 		Short: "set [context|group] [name]",
+		Long: `Invoking this command without a parameter will spawn an interactive selection dialog.
+When providing a context name, the switch will be performed immediately.
+'-' is a reserved context name, that will cause a switch to the previously active context.
+If neither, context nor group is specified, this command will set the context.
+		`,
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Help()
 			os.Exit(1)
@@ -103,13 +108,21 @@ func NewCommand() *cobra.Command {
 	setGroupCommand := &cobra.Command{
 		Use:   "group [name]",
 		Short: "set group to active",
-		Run:   newSetGroupCommand,
+		Long: `Invoking this command without a parameter will spawn an interactive selection dialog. 
+When providing a group name, the switch will be performed immediately.
+'-' is a reserved group name, that will cause a switch to the previously active group.
+		`,
+		Run: newSetGroupCommand,
 	}
 
 	setContextCommand := &cobra.Command{
 		Use:   "context [name]",
 		Short: "set context to active",
-		Run:   NewSetContextCommand,
+		Long: `Invoking this command without a parameter will spawn an interactive selection dialog.
+When providing a context name, the switch will be performed immediately.
+'-' is a reserved context name, that will cause a switch to the previously active context.
+		`,
+		Run: NewSetContextCommand,
 	}
 
 	cmd.AddCommand(setGroupCommand)
