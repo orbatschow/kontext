@@ -19,7 +19,7 @@ var rootCmd = &cobra.Command{
 		if len(args) == 0 {
 			name = ""
 		}
-		err := kubectx.Set(cmd, name)
+		err := kubectx.Set(name)
 		if err != nil {
 			pterm.Printfln("%v", err)
 			os.Exit(1)

@@ -21,7 +21,7 @@ func newSetGroupCommand() *cobra.Command {
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			log := logger.New()
-			err := group.Set(cmd, args[0])
+			err := group.Set(args[0])
 			if err != nil {
 				log.Error(err.Error())
 				os.Exit(1)
@@ -43,7 +43,7 @@ func newSetContextCommand() *cobra.Command {
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			log := logger.New()
-			err := kubectx.Set(cmd, args[0])
+			err := kubectx.Set(args[0])
 			if err != nil {
 				log.Error(err.Error())
 				os.Exit(1)

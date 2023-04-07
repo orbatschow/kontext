@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func Set(_ *cobra.Command, groupName string) error {
+func Set(groupName string) error {
 	log := logger.New()
 	kontextConfig := config.Get()
 	log.Info("setting group", log.Args("name", groupName))
@@ -83,14 +83,14 @@ func Get(cmd *cobra.Command, kontextConfig *config.Config, name string) error {
 	return nil
 }
 
-func Reload(cmd *cobra.Command) error {
+func Reload() error {
 	currentState, err := state.Load()
 	if err != nil {
 		return fmt.Errorf("could not load state, err: '%w'", err)
 	}
 	groupName := currentState.GroupState.Active
 
-	err = Set(cmd, groupName)
+	err = Set(groupName)
 	if err != nil {
 		return err
 	}

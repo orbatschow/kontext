@@ -54,7 +54,7 @@ func Get(cmd *cobra.Command, contextName string) error {
 	return nil
 }
 
-func Set(_ *cobra.Command, contextName string) error {
+func Set(contextName string) error {
 	log := logger.New()
 	kontextConfig := config.Get()
 
@@ -101,7 +101,7 @@ func Set(_ *cobra.Command, contextName string) error {
 	return nil
 }
 
-func Reload(cmd *cobra.Command) error {
+func Reload() error {
 	currentState, err := state.Load()
 	if err != nil {
 		return fmt.Errorf("could not load state, err: '%w'", err)
@@ -111,7 +111,7 @@ func Reload(cmd *cobra.Command) error {
 		return fmt.Errorf("no active context")
 	}
 
-	err = Set(cmd, contextName)
+	err = Set(contextName)
 	if err != nil {
 		return err
 	}

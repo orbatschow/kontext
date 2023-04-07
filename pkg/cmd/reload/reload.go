@@ -16,7 +16,7 @@ func newReloadGroupCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			log := logger.New()
 
-			err := group.Reload(cmd)
+			err := group.Reload()
 			if err != nil {
 				log.Error(err.Error())
 				os.Exit(1)
@@ -33,7 +33,7 @@ func newReloadContextCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			log := logger.New()
 
-			err := kubectx.Reload(cmd)
+			err := kubectx.Reload()
 			if err != nil {
 				log.Error(err.Error())
 				os.Exit(1)
