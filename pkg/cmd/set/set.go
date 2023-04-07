@@ -10,74 +10,60 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newSetGroupCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "group [name]",
-		Short: "set group to active",
-		Run: func(cmd *cobra.Command, args []string) {
-			log := logger.New()
-			var groupName string
-			if len(args) == 0 {
-				groupName = ""
-			} else {
-				groupName = args[0]
-			}
-
-			client, err := group.New()
-			if err != nil {
-				log.Error(err.Error())
-				os.Exit(1)
-			}
-
-			err = client.Set(groupName)
-			if err != nil {
-				log.Error(err.Error())
-				os.Exit(1)
-			}
-
-			err = state.Write(client.State)
-			if err != nil {
-				log.Error(err.Error())
-				os.Exit(1)
-			}
-		},
+func newSetGroupCommand(cmd *cobra.Command, args []string) {
+	log := logger.New()
+	var groupName string
+	if len(args) == 0 {
+		groupName = ""
+	} else {
+		groupName = args[0]
 	}
-	return cmd
+
+	client, err := group.New()
+	if err != nil {
+		log.Error(err.Error())
+		os.Exit(1)
+	}
+
+	err = client.Set(groupName)
+	if err != nil {
+		log.Error(err.Error())
+		os.Exit(1)
+	}
+
+	err = state.Write(client.State)
+	if err != nil {
+		log.Error(err.Error())
+		os.Exit(1)
+	}
 }
 
-func newSetContextCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "context [name]",
-		Short: "set context to active",
-		Run: func(cmd *cobra.Command, args []string) {
-			log := logger.New()
-			var contextName string
-			if len(args) == 0 {
-				contextName = ""
-			} else {
-				contextName = args[0]
-			}
-
-			client, err := context.New()
-			if err != nil {
-				log.Error(err.Error())
-				os.Exit(1)
-			}
-
-			err = client.Set(contextName)
-			if err != nil {
-				log.Error(err.Error())
-				os.Exit(1)
-			}
-
-			err = state.Write(client.State)
-			if err != nil {
-				log.Error(err.Error())
-				os.Exit(1)
-			}
-		},
+func NewSetContextCommand(_ *cobra.Command, args []string) {
+	log := logger.New()
+	var contextName string
+	if len(args) == 0 {
+		contextName = ""
+	} else {
+		contextName = args[0]
 	}
-	return cmd
+
+	client, err := context.New()
+	if err != nil {
+		log.Error(err.Error())
+		os.Exit(1)
+	}
+
+	err = client.Set(contextName)
+	if err != nil {
+		log.Error(err.Error())
+		os.Exit(1)
+	}
+
+	err = state.Write(client.State)
+	if err != nil {
+		log.Error(err.Error())
+		os.Exit(1)
+	}
 }
 
 func NewCommand() *cobra.Command {
@@ -90,8 +76,22 @@ func NewCommand() *cobra.Command {
 		},
 	}
 
-	cmd.AddCommand(newSetGroupCommand())
-	cmd.AddCommand(newSetContextCommand())
+	setGroupCommand := &cobra.Command{
+		Use:   "group [name]",
+		Short: "set group to active",
+		Run:   newSetGroupCommand,
+	}
+
+	setContextCommand := &cobra.Command{
+		Use:   "context [name]",
+		Short: "set context to active",
+		Run: func(cmd *cobra.Command, args []string) {
+
+		},
+	}
+
+	cmd.AddCommand(setGroupCommand)
+	cmd.AddCommand(setContextCommand)
 
 	return cmd
 }

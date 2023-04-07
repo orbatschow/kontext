@@ -1,6 +1,15 @@
 # global configuration options
 global:
   kubeconfig: "$HOME/.config/kontext/kubeconfig.yaml"
+  # log level, possible values are:
+  # 1 -> Trace
+  # 2 -> Debug
+  # 3 -> Info
+  # 4 -> Warn
+  # 5 -> Error
+  # 6 -> Fatal
+  # 7 -> Print
+  verbosity: 0
 
 # define backup settings for old kubeconfig files
 backup:

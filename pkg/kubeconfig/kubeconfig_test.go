@@ -106,8 +106,7 @@ func Test_Write(t *testing.T) {
 				KontextConfig: func(tmpFile *os.File) *config.Config {
 					kontextConfig := &config.Config{
 						Global: config.Global{
-							Kubeconfig:                tmpFile.Name(),
-							ConfirmKubeconfigOverride: false,
+							Kubeconfig: tmpFile.Name(),
 						},
 					}
 					return kontextConfig
@@ -134,8 +133,7 @@ func Test_Write(t *testing.T) {
 				KontextConfig: func(tmpFile *os.File) *config.Config {
 					kontextConfig := &config.Config{
 						Global: config.Global{
-							Kubeconfig:                "",
-							ConfirmKubeconfigOverride: false,
+							Kubeconfig: "",
 						},
 					}
 					return kontextConfig
@@ -163,9 +161,8 @@ func Test_Write(t *testing.T) {
 			if err != nil {
 				t.Errorf("%v", err)
 			}
-			kontextConfig := tt.args.KontextConfig(tmpFile)
 
-			err = Write(tt.args.APIConfig)
+			err = Write(tmpFile, tt.args.APIConfig)
 			if !tt.wantErr && err != nil {
 				t.Errorf("expected error")
 			}

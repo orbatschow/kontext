@@ -22,7 +22,7 @@ func Read(reader io.Reader) (*api.Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not unmarshal kubeconfig, err: '%w'", err)
 	}
-	log.Info("read kubeconfig")
+	log.Debug("read kubeconfig")
 
 	return buffer, nil
 }
@@ -41,7 +41,7 @@ func Write(writer io.Writer, apiConfig *api.Config) error {
 		return err
 	}
 
-	log.Info("wrote kubeconfig")
+	log.Debug("wrote kubeconfig")
 	return nil
 }
 

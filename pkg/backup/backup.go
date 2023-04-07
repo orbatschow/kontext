@@ -27,6 +27,9 @@ func Create(config *config.Config) error {
 		return err
 	}
 	apiConfig, err := kubeconfig.Read(file)
+	if err != nil {
+		return err
+	}
 
 	backupFileName := computeBackupFileName(file.Name())
 	backup, err := os.Create(backupFileName)
@@ -43,7 +46,6 @@ func Create(config *config.Config) error {
 }
 
 func computeBackupFileName(baseFileName string) string {
-
 	basePath := filepath.Dir(baseFileName)
 	fileName := filepath.Base(fileNameWithoutExtension(baseFileName))
 	timestamp := strconv.Itoa(makeTimestamp())

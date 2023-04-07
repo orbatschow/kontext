@@ -3,6 +3,7 @@ package get
 import (
 	"os"
 
+	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/context"
 	"github.com/orbatschow/kontext/pkg/group"
 	"github.com/orbatschow/kontext/pkg/logger"
@@ -16,38 +17,34 @@ func newGetGroupCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			log := logger.New()
 			var groupName string
+
 			if len(args) > 0 {
 				groupName = args[0]
 			}
 
-			client, err := group.New()
+			groupClient, err := group.New()
 			if err != nil {
 				log.Error(err.Error())
 				os.Exit(1)
 			}
 
-			// if a group name is given, find it and render the result
+			var groups []config.Group
 			if len(groupName) != 0 {
-				match, err := client.Get(groupName)
+				match, err := groupClient.Get(groupName)
 				if err != nil {
 					log.Error(err.Error())
 					os.Exit(1)
 				}
-				err = client.Print(match)
-				if err != nil {
-					log.Error(err.Error())
-					os.Exit(1)
-				}
+				groups = append(groups, *match)
 			} else {
-				// if no group name is given, find all groups and render the result
-				match := client.List()
-				err = client.Print(match...)
-				if err != nil {
-					log.Error(err.Error())
-					os.Exit(1)
-				}
+				groups = groupClient.Config.Groups
 			}
 
+			err = groupClient.Print(groups...)
+			if err != nil {
+				log.Error(err.Error())
+				os.Exit(1)
+			}
 		},
 	}
 	return cmd
@@ -64,28 +61,28 @@ func newGetContextCommand() *cobra.Command {
 				contextName = args[0]
 			}
 
-			client, err := context.New()
+			contextClient, err := context.New()
 			if err != nil {
 				log.Error(err.Error())
 				os.Exit(1)
 			}
 
-			// if a group name is given, find it and render the result
+			// if a context name is given, find it and render the result
 			if len(contextName) != 0 {
-				match, err := client.Get(contextName)
+				match, err := contextClient.Get(contextName)
 				if err != nil {
 					log.Error(err.Error())
 					os.Exit(1)
 				}
-				err = client.Print(match)
+				err = contextClient.Print(match)
 				if err != nil {
 					log.Error(err.Error())
 					os.Exit(1)
 				}
 			} else {
-				// if no group name is given, find all groups and render the result
-				match := client.List()
-				err = client.Print(match)
+				// if no context name is given, find all groups and render the result
+				match := contextClient.List()
+				err = contextClient.Print(match)
 				if err != nil {
 					log.Error(err.Error())
 					os.Exit(1)
