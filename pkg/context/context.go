@@ -18,7 +18,10 @@ type Client struct {
 	APIConfig *api.Config
 }
 
-const MaxSelectHeight = 500
+const (
+	MaxSelectHeight      = 500
+	PreviousContextAlias = "-"
+)
 
 func New() (*Client, error) {
 	config := config.Get()
@@ -66,6 +69,11 @@ func (c *Client) List() map[string]*api.Context {
 
 func (c *Client) Set(contextName string) error {
 	log := logger.New()
+	history := c.State.Context.History
+
+	if len(history) > 1 && contextName == "-" {
+		contextName = history[len(history)-2]
+	}
 
 	if len(contextName) == 0 {
 		var keys []string
@@ -81,7 +89,8 @@ func (c *Client) Set(contextName string) error {
 	}
 
 	c.APIConfig.CurrentContext = contextName
-	c.State.ContextState.Active = contextName
+	c.State.Context.Active = contextName
+	c.State.Context.History = state.ComputeHistory(c.Config, contextName, history)
 
 	log.Info("switched context", log.Args("context", contextName))
 	return nil
@@ -93,7 +102,7 @@ func (c *Client) Print(contexts map[string]*api.Context) error {
 	}
 	for key, value := range contexts {
 		active := ""
-		if key == c.State.ContextState.Active {
+		if key == c.State.Context.Active {
 			active = "*"
 		}
 		table = append(table, []string{

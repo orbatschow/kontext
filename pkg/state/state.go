@@ -11,20 +11,23 @@ import (
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
+	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/logger"
 )
 
-type GroupState struct {
-	Active string `json:"active,omitempty"`
+type Group struct {
+	Active  string   `json:"active,omitempty"`
+	History []string `json:"history,omitempty"`
 }
 
-type ContextState struct {
-	Active string `json:"active,omitempty"`
+type Context struct {
+	Active  string   `json:"active,omitempty"`
+	History []string `json:"history,omitempty"`
 }
 
 type State struct {
-	GroupState   GroupState   `json:"groupState"`
-	ContextState ContextState `json:"contextState"`
+	Group   Group   `json:"group"`
+	Context Context `json:"context"`
 }
 
 var (
@@ -35,6 +38,8 @@ var (
 
 	state *State
 )
+
+const DefaultMaximumHistorySize = 10
 
 func initialize() error {
 	log := logger.New()
@@ -107,4 +112,24 @@ func Write(state *State) error {
 
 func Get() *State {
 	return state
+}
+
+func ComputeHistory(config *config.Config, entry string, history []string) []string {
+	var maxHistorySize int
+
+	if config.History.Size == nil {
+		maxHistorySize = DefaultMaximumHistorySize
+	} else {
+		maxHistorySize = *config.History.Size
+	}
+
+	if len(history) > 0 && history[len(history)-1] == entry {
+		return history
+	}
+	history = append(history, entry)
+	if len(history) > maxHistorySize {
+		_, history = history[0], history[1:]
+	}
+
+	return history
 }

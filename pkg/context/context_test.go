@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/state"
 	"k8s.io/client-go/tools/clientcmd/api"
 )
@@ -113,6 +114,7 @@ func Test_List(t *testing.T) {
 func Test_Set(t *testing.T) {
 	type args struct {
 		ContextName string
+		Config      *config.Config
 		State       *state.State
 		APIConfig   *api.Config
 	}
@@ -127,6 +129,7 @@ func Test_Set(t *testing.T) {
 			name: "should change the api config and state to the given context",
 			args: args{
 				ContextName: "kind",
+				Config:      &config.Config{},
 				APIConfig: &api.Config{
 					CurrentContext: "local",
 					Contexts: map[string]*api.Context{
@@ -135,14 +138,17 @@ func Test_Set(t *testing.T) {
 					},
 				},
 				State: &state.State{
-					ContextState: state.ContextState{
+					Context: state.Context{
 						Active: "local",
 					},
 				},
 			},
 			wantState: &state.State{
-				ContextState: state.ContextState{
+				Context: state.Context{
 					Active: "kind",
+					History: []string{
+						"kind",
+					},
 				},
 			},
 			wantAPIConfig: &api.Config{
@@ -158,6 +164,7 @@ func Test_Set(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := Client{
+				Config:    tt.args.Config,
 				State:     tt.args.State,
 				APIConfig: tt.args.APIConfig,
 			}
@@ -192,7 +199,7 @@ func Test_Print(t *testing.T) {
 			name: "should print without an error",
 			args: args{
 				State: &state.State{
-					ContextState: state.ContextState{
+					Context: state.Context{
 						Active: "local",
 					},
 				},

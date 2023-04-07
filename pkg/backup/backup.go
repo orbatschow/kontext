@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
+	"github.com/adrg/xdg"
 	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/kubeconfig"
 	"github.com/orbatschow/kontext/pkg/logger"
@@ -31,32 +30,31 @@ func Create(config *config.Config) error {
 		return err
 	}
 
-	backupFileName := computeBackupFileName(file.Name())
-	backup, err := os.Create(backupFileName)
+	var backupDirectory string
+	if len(config.Backup.Location) == 0 {
+		backupDirectory = path.Join(xdg.DataHome, "kontext", "backup")
+	}
+
+	if _, err := os.Stat(backupDirectory); os.IsNotExist(err) {
+		err = os.MkdirAll(backupDirectory, 0755)
+		if err != nil {
+			return fmt.Errorf("could not create backup directory, err: '%w'", err)
+		}
+	}
+
+	timestamp := strconv.Itoa(makeTimestamp())
+	backupFileName := fmt.Sprintf("kubeconfig-%s.yaml", timestamp)
+	backupFile, err := os.Create(path.Join(backupDirectory, backupFileName))
 	if err != nil {
 		return err
 	}
 
-	err = kubeconfig.Write(backup, apiConfig)
+	err = kubeconfig.Write(backupFile, apiConfig)
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func computeBackupFileName(baseFileName string) string {
-	basePath := filepath.Dir(baseFileName)
-	fileName := filepath.Base(fileNameWithoutExtension(baseFileName))
-	timestamp := strconv.Itoa(makeTimestamp())
-
-	backupPath := path.Join(basePath, fmt.Sprintf("%s-%s.bak", fileName, timestamp))
-
-	return backupPath
-}
-
-func fileNameWithoutExtension(fileName string) string {
-	return strings.TrimSuffix(fileName, filepath.Ext(fileName))
 }
 
 func makeTimestamp() int {

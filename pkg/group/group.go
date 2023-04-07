@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/orbatschow/kontext/pkg/config"
+	"github.com/orbatschow/kontext/pkg/context"
 	"github.com/orbatschow/kontext/pkg/kubeconfig"
 	"github.com/orbatschow/kontext/pkg/logger"
 	"github.com/orbatschow/kontext/pkg/source"
@@ -45,6 +46,11 @@ func New() (*Client, error) {
 
 func (c *Client) Set(groupName string) error {
 	log := logger.New()
+	history := c.State.Group.History
+
+	if len(history) > 1 && groupName == "-" {
+		groupName = history[len(history)-2]
+	}
 
 	if len(groupName) == 0 {
 		var keys []string
@@ -83,9 +89,24 @@ func (c *Client) Set(groupName string) error {
 		return err
 	}
 
+	// if the group has a default context, set it
+	defaultContext := group.Context
+	if len(defaultContext) > 0 {
+		contextClient := context.Client{
+			Config:    c.Config,
+			State:     c.State,
+			APIConfig: apiConfig,
+		}
+		err := contextClient.Set(defaultContext)
+		if err != nil {
+			return err
+		}
+	}
+
 	// set new api config and modify state
 	c.APIConfig = apiConfig
-	c.State.GroupState.Active = groupName
+	c.State.Group.Active = groupName
+	c.State.Group.History = state.ComputeHistory(c.Config, groupName, c.State.Group.History)
 
 	return nil
 }
@@ -102,7 +123,7 @@ func (c *Client) Get(groupName string) (*config.Group, error) {
 }
 
 func (c *Client) Reload() error {
-	groupName := c.State.GroupState.Active
+	groupName := c.State.Group.Active
 
 	err := c.Set(groupName)
 	if err != nil {
@@ -117,7 +138,7 @@ func (c *Client) Print(groups ...config.Group) error {
 	}
 	for _, value := range groups {
 		active := ""
-		if value.Name == c.State.GroupState.Active {
+		if value.Name == c.State.Group.Active {
 			active = "*"
 		}
 		table = append(table, []string{

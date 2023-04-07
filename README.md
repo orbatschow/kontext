@@ -10,6 +10,8 @@
 
 Kontext is a single binary application, that takes yet another approach on kubeconfig management.
 
+## Demo
+
 ## Features
 
 Kontext has several features, that will ease your life when dealing with different kubeconfig files.
@@ -22,7 +24,7 @@ and list all available options. To get more information about setting and gettin
 ### Groups
 
 Groups refer to one or more sources and can be used to bundle kubeconfig files together. You
-can switch between groups and enable or disable multiple sources at once. Get help via:
+can switch between groups and enable or disable multiple sources at once.
 
 ### Sources
 
@@ -40,13 +42,21 @@ At the moment kontext is distributed as a single binary and can be downloaded fr
 
 Have a look at the [example](./example/kontext.yaml). It should be well described and show you
 how to configure kontext. Kontext will look at different paths for the configuration file, depending on
-your operating system: 
+your operating system:
 
 | Linux                          | MacOS                          | Windows                           |
 |--------------------------------|--------------------------------|-----------------------------------|
 | ~/.config/kontext/kontext.yaml | ~/.config/kontext/kontext.yaml | LocalAppData\kontext\kontext.yaml |
 
-All paths are build by [xdg](https://github.com/adrg/xdg).
+## Backups
+
+As kontext will override your kubeconfig file pretty often, it allows you to configure backups. All
+backups are placed within a dedicated backup directory, that can be configured within the configuration file.
+There are defaults, that are specific to all operating systems:
+
+| Linux                         | MacOS                                        | Windows                     |
+|-------------------------------|----------------------------------------------|-----------------------------|
+| ~/.local/share/kontext/backup | ~/Library/Application Support/kontext/backup | LocalAppData\kontext\backup |
 
 ## Contributing
 
