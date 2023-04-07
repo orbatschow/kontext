@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newSetGroupCommand(cmd *cobra.Command, args []string) {
+func newSetGroupCommand(_ *cobra.Command, args []string) {
 	log := logger.New()
 	var groupName string
 	if len(args) == 0 {
@@ -33,7 +33,7 @@ func newSetGroupCommand(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	file, err := os.OpenFile(config.Get().Global.Kubeconfig, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 644)
+	file, err := os.OpenFile(config.Get().Global.Kubeconfig, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		log.Error(err.Error())
 		os.Exit(1)
@@ -72,7 +72,7 @@ func NewSetContextCommand(_ *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	file, err := os.OpenFile(config.Get().Global.Kubeconfig, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 644)
+	file, err := os.OpenFile(config.Get().Global.Kubeconfig, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		log.Error(err.Error())
 		os.Exit(1)
