@@ -31,17 +31,23 @@ type Group struct {
 }
 
 type Backup struct {
-	Enabled bool `json:"enabled"`
+	Enabled   bool `json:"enabled"`
+	Revisions *int `json:"revisions,omitempty"`
+}
+
+type History struct {
+	Size *int `json:"size"`
 }
 
 type Global struct {
 	Kubeconfig string         `json:"kubeconfig,omitempty"`
-	Verbosity  pterm.LogLevel `json:"verbosity"`
+	Verbosity  pterm.LogLevel `json:"verbosity,omitempty"`
 }
 
 type Config struct {
 	Global  Global   `json:"global,omitempty"`
 	Backup  Backup   `json:"backup"`
+	History History  `json:"history,omitempty"`
 	Groups  []Group  `json:"groups"`
 	Sources []Source `json:"sources"`
 }
@@ -77,7 +83,23 @@ func Read() error {
 		return err
 	}
 
+	expandEnvironment(config)
+
 	return nil
+}
+
+func expandEnvironment(config *Config) {
+	config.Global.Kubeconfig = os.ExpandEnv(config.Global.Kubeconfig)
+
+	for i, source := range config.Sources {
+		for j, include := range source.Include {
+			source.Include[j] = os.ExpandEnv(include)
+		}
+		for j, exclude := range source.Exclude {
+			source.Exclude[j] = os.ExpandEnv(exclude)
+		}
+		config.Sources[i] = source
+	}
 }
 
 // Get will return a parsed kontext Config struct

@@ -45,6 +45,11 @@ func New() (*Client, error) {
 
 func (c *Client) Set(groupName string) error {
 	log := logger.New()
+	history := c.State.Group.History
+
+	if len(history) > 1 && groupName == "-" {
+		groupName = history[len(history)-2]
+	}
 
 	if len(groupName) == 0 {
 		var keys []string
@@ -85,7 +90,8 @@ func (c *Client) Set(groupName string) error {
 
 	// set new api config and modify state
 	c.APIConfig = apiConfig
-	c.State.GroupState.Active = groupName
+	c.State.Group.Active = groupName
+	c.State.Group.History = state.ComputeHistory(c.Config, groupName, c.State.Group.History)
 
 	return nil
 }
@@ -102,7 +108,7 @@ func (c *Client) Get(groupName string) (*config.Group, error) {
 }
 
 func (c *Client) Reload() error {
-	groupName := c.State.GroupState.Active
+	groupName := c.State.Group.Active
 
 	err := c.Set(groupName)
 	if err != nil {
@@ -117,7 +123,7 @@ func (c *Client) Print(groups ...config.Group) error {
 	}
 	for _, value := range groups {
 		active := ""
-		if value.Name == c.State.GroupState.Active {
+		if value.Name == c.State.Group.Active {
 			active = "*"
 		}
 		table = append(table, []string{

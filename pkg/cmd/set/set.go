@@ -3,8 +3,10 @@ package set
 import (
 	"os"
 
+	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/context"
 	"github.com/orbatschow/kontext/pkg/group"
+	"github.com/orbatschow/kontext/pkg/kubeconfig"
 	"github.com/orbatschow/kontext/pkg/logger"
 	"github.com/orbatschow/kontext/pkg/state"
 	"github.com/spf13/cobra"
@@ -26,6 +28,17 @@ func newSetGroupCommand(cmd *cobra.Command, args []string) {
 	}
 
 	err = client.Set(groupName)
+	if err != nil {
+		log.Error(err.Error())
+		os.Exit(1)
+	}
+
+	file, err := os.OpenFile(config.Get().Global.Kubeconfig, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 644)
+	if err != nil {
+		log.Error(err.Error())
+		os.Exit(1)
+	}
+	err = kubeconfig.Write(file, client.APIConfig)
 	if err != nil {
 		log.Error(err.Error())
 		os.Exit(1)
@@ -59,6 +72,17 @@ func NewSetContextCommand(_ *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
+	file, err := os.OpenFile(config.Get().Global.Kubeconfig, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 644)
+	if err != nil {
+		log.Error(err.Error())
+		os.Exit(1)
+	}
+	err = kubeconfig.Write(file, client.APIConfig)
+	if err != nil {
+		log.Error(err.Error())
+		os.Exit(1)
+	}
+
 	err = state.Write(client.State)
 	if err != nil {
 		log.Error(err.Error())
@@ -85,9 +109,7 @@ func NewCommand() *cobra.Command {
 	setContextCommand := &cobra.Command{
 		Use:   "context [name]",
 		Short: "set context to active",
-		Run: func(cmd *cobra.Command, args []string) {
-
-		},
+		Run:   NewSetContextCommand,
 	}
 
 	cmd.AddCommand(setGroupCommand)
