@@ -19,6 +19,8 @@ func newSetGroupCommand() *cobra.Command {
 			var groupName string
 			if len(args) == 0 {
 				groupName = ""
+			} else {
+				groupName = args[0]
 			}
 
 			client, err := group.New()
@@ -52,6 +54,8 @@ func newSetContextCommand() *cobra.Command {
 			var contextName string
 			if len(args) == 0 {
 				contextName = ""
+			} else {
+				contextName = args[0]
 			}
 
 			client, err := context.New()

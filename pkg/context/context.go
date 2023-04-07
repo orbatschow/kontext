@@ -87,20 +87,6 @@ func (c *Client) Set(contextName string) error {
 	return nil
 }
 
-func (c *Client) Reload() error {
-	contextName := c.State.ContextState.Active
-	if len(contextName) == 0 {
-		return fmt.Errorf("no active context")
-	}
-
-	err := c.Set(contextName)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (c *Client) Print(contexts map[string]*api.Context) error {
 	table := pterm.TableData{
 		{"Active", "Name", "Cluster", "AuthInfo"},
