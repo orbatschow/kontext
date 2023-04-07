@@ -36,39 +36,39 @@ sources:
   # a source called primary, that defines one include and one exclude glob
   - name: primary
     include:
-      - /home/orbatschow/.config/kubernetes/**/*.yaml
+      - $HOME/.config/kontext/**/*.yaml
     exclude:
-      - /home/orbatschow/.config/kubernetes/**/*prod*.yaml
+      - $HOME/.config/kontext/**/*prod*.yaml
 
   # a source called customer-a.dev, that defines one include and one exclude glob
   - name: customer-a.dev
     include:
-      - /home/orbatschow/.config/kubernetes/dev/customer-a/**/*.yaml
+      - $HOME/.config/kontext/dev/customer-a/**/*.yaml
     exclude:
-      - /home/orbatschow/.config/kubernetes/dev/**/*skip*.yaml
+      - $HOME/.config/kontext/dev/**/*skip*.yaml
 
   # a source called customer-b.dev, that defines one include and one exclude glob
   - name: customer-b.dev
     include:
-      - /home/orbatschow/.config/kubernetes/dev/customer-b/**/*.yaml
+      - $HOME/.config/kontext/dev/customer-b/**/*.yaml
     exclude:
-      - /home/orbatschow/.config/kubernetes/dev/**/*skip*.yaml
+      - $HOME/.config/kontext/dev/**/*skip*.yaml
 
   # a source called prod, that defines one include and one exclude glob
   - name: prod
     include:
-      - /home/orbatschow/.config/kubernetes/prod/**/*.yaml
+      - $HOME/.config/kontext/prod/**/*.yaml
     exclude:
-      - /home/orbatschow/.config/kubernetes/prod/**/*skip*.yaml
+      - $HOME/.config/kontext/prod/**/*skip*.yaml
 
   # a source called local, that defines three include and no exclude globs
   - name: local
     include:
-      - /home/orbatschow/.config/kubernetes/orbatschow/**/*.yaml
-      - /home/orbatschow/.config/kubernetes/local/**/*.yaml
-      - /home/orbatschow/.config/kubernetes/kind/**/*.yaml
+      - $HOME/.config/kontext/orbatschow/**/*.yaml
+      - $HOME/.config/kontext/local/**/*.yaml
+      - $HOME/.config/kontext/kind/**/*.yaml
 
   # a source called local, that defines one include and no exclude glob
   - name: private
     include:
-      - /home/orbatschow/.config/kubernetes/private/**/*.yaml
+      - $HOME/.config/kontext/private/**/*.yaml
