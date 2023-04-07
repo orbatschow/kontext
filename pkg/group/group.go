@@ -57,11 +57,7 @@ func (c *Client) Set(groupName string) error {
 	var files []string
 
 	group, ok := lo.Find(c.Config.Groups, func(item config.Group) bool {
-		if item.Name == groupName {
-			return true
-		} else {
-			return false
-		}
+		return item.Name == groupName
 	})
 	if !ok {
 		return fmt.Errorf("could not find group: '%s", groupName)
@@ -96,30 +92,13 @@ func (c *Client) Set(groupName string) error {
 
 func (c *Client) Get(groupName string) (*config.Group, error) {
 	match, ok := lo.Find(c.Config.Groups, func(item config.Group) bool {
-		if item.Name == groupName {
-			return true
-		} else {
-			return false
-		}
+		return item.Name == groupName
 	})
 	if !ok {
 		return nil, fmt.Errorf("could not find group: '%s'", groupName)
 	}
 
 	return &match, nil
-}
-
-func (c *Client) List() []*config.Group {
-	log := logger.New()
-	log.Info("listing contexts")
-
-	var buffer []*config.Group
-
-	for _, value := range c.Config.Groups {
-		buffer = append(buffer, &value)
-	}
-
-	return buffer
 }
 
 func (c *Client) Reload() error {
@@ -132,7 +111,7 @@ func (c *Client) Reload() error {
 	return nil
 }
 
-func (c *Client) Print(groups ...*config.Group) error {
+func (c *Client) Print(groups ...config.Group) error {
 	table := pterm.TableData{
 		{"Active", "Name", "Source(s)"},
 	}

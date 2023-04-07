@@ -43,7 +43,6 @@ func Test_Get(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			client := Client{
 				APIConfig: tt.args.APIConfig,
 			}
@@ -99,7 +98,6 @@ func Test_List(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			client := Client{
 				APIConfig: tt.args.APIConfig,
 			}
@@ -159,7 +157,6 @@ func Test_Set(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			client := Client{
 				State:     tt.args.State,
 				APIConfig: tt.args.APIConfig,
@@ -228,7 +225,6 @@ func Test_Print(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			client := Client{
 				State: tt.args.State,
 			}
@@ -237,7 +233,6 @@ func Test_Print(t *testing.T) {
 			if !tt.wantErr && err != nil {
 				t.Errorf("err: '%v'", err)
 			}
-
 		})
 	}
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
-	"github.com/orbatschow/kontext/pkg/logger"
+	"github.com/pterm/pterm"
 )
 
 // Global koanf instance. Use . as the key path delimiter. This can be / or anything.
@@ -35,8 +35,8 @@ type Backup struct {
 }
 
 type Global struct {
-	Kubeconfig string `json:"kubeconfig,omitempty"`
-	Backup     Backup `json:"backup"`
+	Kubeconfig string         `json:"kubeconfig,omitempty"`
+	Verbosity  pterm.LogLevel `json:"verbosity"`
 }
 
 type Config struct {
@@ -62,7 +62,6 @@ func validate(config *Config) error {
 
 // Read will parse a kontext configuration file
 func Read() error {
-	log := logger.New()
 	configFile := path.Join(xdg.ConfigHome, "kontext", "kontext.yaml")
 
 	if err := instance.Load(file.Provider(configFile), yaml.Parser()); err != nil {
@@ -72,7 +71,6 @@ func Read() error {
 	if err := instance.UnmarshalWithConf("", &config, koanf.UnmarshalConf{Tag: "json"}); err != nil {
 		return err
 	}
-	log.Debug("read config file", log.Args("path", configFile))
 
 	err := validate(config)
 	if err != nil {
