@@ -30,13 +30,18 @@ type Group struct {
 	Sources []string `json:"sources"`
 }
 
+type Backup struct {
+	Enabled bool `json:"enabled"`
+}
+
 type Global struct {
-	Kubeconfig                string `json:"kubeconfig,omitempty"`
-	ConfirmKubeconfigOverride bool   `json:"confirmKubeconfigOverride,omitempty"`
+	Kubeconfig string `json:"kubeconfig,omitempty"`
+	Backup     Backup `json:"backup"`
 }
 
 type Config struct {
 	Global  Global   `json:"global,omitempty"`
+	Backup  Backup   `json:"backup"`
 	Groups  []Group  `json:"groups"`
 	Sources []Source `json:"sources"`
 }

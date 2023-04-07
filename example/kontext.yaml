@@ -1,5 +1,10 @@
 # global configuration options
 global:
+  kubeconfig: "$HOME/.config/kontext/kubeconfig.yaml"
+
+# define backup settings for old kubeconfig files
+backup:
+  enabled: true
 
 # groups define a set of sources to include
 groups:

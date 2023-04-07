@@ -165,7 +165,7 @@ func Test_Write(t *testing.T) {
 			}
 			kontextConfig := tt.args.KontextConfig(tmpFile)
 
-			err = Write(kontextConfig, tt.args.APIConfig)
+			err = Write(tt.args.APIConfig)
 			if !tt.wantErr && err != nil {
 				t.Errorf("expected error")
 			}

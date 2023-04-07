@@ -5,7 +5,6 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/logger"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
@@ -28,14 +27,21 @@ func Read(reader io.Reader) (*api.Config, error) {
 	return buffer, nil
 }
 
-func Write(kontextConfig *config.Config, apiConfig *api.Config) error {
+func Write(writer io.Writer, apiConfig *api.Config) error {
 	log := logger.New()
+	var buffer []byte
 
-	err := clientcmd.WriteToFile(*apiConfig, kontextConfig.Global.Kubeconfig)
+	buffer, err := clientcmd.Write(*apiConfig)
 	if err != nil {
 		return fmt.Errorf("persist new kubeconfig, err: '%w'", err)
 	}
-	log.Info("wrote new kubeconfig", log.Args("path", kontextConfig.Global.Kubeconfig))
+
+	_, err = writer.Write(buffer)
+	if err != nil {
+		return err
+	}
+
+	log.Info("wrote kubeconfig")
 	return nil
 }
 
