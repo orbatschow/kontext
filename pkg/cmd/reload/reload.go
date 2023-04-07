@@ -3,9 +3,10 @@ package reload
 import (
 	"os"
 
-	kubectx "github.com/orbatschow/kontext/pkg/context"
+	"github.com/orbatschow/kontext/pkg/context"
 	"github.com/orbatschow/kontext/pkg/group"
 	"github.com/orbatschow/kontext/pkg/logger"
+	"github.com/orbatschow/kontext/pkg/state"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +17,19 @@ func newReloadGroupCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			log := logger.New()
 
-			err := group.Reload()
+			client, err := group.New()
+			if err != nil {
+				log.Error(err.Error())
+				os.Exit(1)
+			}
+
+			err = client.Reload()
+			if err != nil {
+				log.Error(err.Error())
+				os.Exit(1)
+			}
+
+			err = state.Write(client.State)
 			if err != nil {
 				log.Error(err.Error())
 				os.Exit(1)
@@ -30,10 +43,25 @@ func newReloadContextCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "context",
 		Short: "reload the active context",
+		PreRun: func(cmd *cobra.Command, args []string) {
+
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			log := logger.New()
 
-			err := kubectx.Reload()
+			client, err := context.New()
+			if err != nil {
+				log.Error(err.Error())
+				os.Exit(1)
+			}
+
+			err = client.Reload()
+			if err != nil {
+				log.Error(err.Error())
+				os.Exit(1)
+			}
+
+			err = state.Write(client.State)
 			if err != nil {
 				log.Error(err.Error())
 				os.Exit(1)

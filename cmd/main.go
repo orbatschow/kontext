@@ -12,13 +12,13 @@ func main() {
 	log := logger.New()
 
 	// initialize state
-	err := state.Init()
+	err := state.Read()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
 	// load config
-	err = config.Load()
+	err = config.Read()
 	if err != nil {
 		log.Fatal(err.Error())
 	}

@@ -3,6 +3,7 @@ package group
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/orbatschow/kontext/pkg/config"
@@ -11,28 +12,70 @@ import (
 	"github.com/orbatschow/kontext/pkg/source"
 	"github.com/orbatschow/kontext/pkg/state"
 	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
+	"github.com/samber/lo"
+	"k8s.io/client-go/tools/clientcmd/api"
 )
 
-func Set(groupName string) error {
+const MaxSelectHeight = 500
+
+type Client struct {
+	Config    *config.Config
+	State     *state.State
+	APIConfig *api.Config
+}
+
+func New() (*Client, error) {
+	config := config.Get()
+	file, err := os.Open(config.Global.Kubeconfig)
+	if err != nil {
+		return nil, err
+	}
+
+	apiConfig, err := kubeconfig.Read(file)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Client{
+		Config:    config,
+		State:     state.Get(),
+		APIConfig: apiConfig,
+	}, nil
+}
+
+func (c *Client) Set(groupName string) error {
 	log := logger.New()
-	kontextConfig := config.Get()
-	log.Info("setting group", log.Args("name", groupName))
+
+	if len(groupName) == 0 {
+		var keys []string
+		for _, value := range c.Config.Groups {
+			keys = append(keys, value.Name)
+		}
+		groupName, _ = pterm.DefaultInteractiveSelect.WithMaxHeight(MaxSelectHeight).WithOptions(keys).Show()
+	}
 
 	var files []string
 
-	group, ok := kontextConfig.Groups[groupName]
+	group, ok := lo.Find(c.Config.Groups, func(item config.Group) bool {
+		if item.Name == groupName {
+			return true
+		} else {
+			return false
+		}
+	})
 	if !ok {
 		return fmt.Errorf("could not find group: '%s", groupName)
 	}
 
-	for _, sourceRef := range group.Sources {
-		value, ok := kontextConfig.Sources[sourceRef]
+	for _, sourceName := range group.Sources {
+		sourceMatch, ok := lo.Find(c.Config.Sources, func(item config.Source) bool {
+			return sourceName == item.Name
+		})
 		if !ok {
-			log.Warn("could not find source", log.Args("source", sourceRef, "group", groupName))
+			log.Warn("could not find source", log.Args("source", sourceName, "group", groupName))
 			continue
 		}
-		match, err := source.Expand(&value)
+		match, err := source.Expand(&sourceMatch)
 		if err != nil {
 			return err
 		}
@@ -44,82 +87,69 @@ func Set(groupName string) error {
 		return err
 	}
 
-	err = kubeconfig.Write(kontextConfig, apiConfig)
-	if err != nil {
-		return err
-	}
-
-	currentState, err := state.Load()
-	if err != nil {
-		return err
-	}
-
-	currentState.GroupState.Active = groupName
-	err = state.Write(currentState)
-	if err != nil {
-		return err
-	}
+	// set new api config and modify state
+	c.APIConfig = apiConfig
+	c.State.GroupState.Active = groupName
 
 	return nil
 }
 
-func Get(cmd *cobra.Command, kontextConfig *config.Config, name string) error {
-	buffer := make(map[string]config.Group)
-
-	if len(name) > 0 {
-		value, ok := kontextConfig.Groups[name]
-		if !ok {
-			return fmt.Errorf("could not find group: '%s'", name)
+func (c *Client) Get(groupName string) (*config.Group, error) {
+	match, ok := lo.Find(c.Config.Groups, func(item config.Group) bool {
+		if item.Name == groupName {
+			return true
+		} else {
+			return false
 		}
-		buffer[name] = value
-	} else {
-		buffer = kontextConfig.Groups
+	})
+	if !ok {
+		return nil, fmt.Errorf("could not find group: '%s'", groupName)
 	}
 
-	err := Print(cmd, buffer)
+	return &match, nil
+}
+
+func (c *Client) List() []*config.Group {
+	log := logger.New()
+	log.Info("listing contexts")
+
+	var buffer []*config.Group
+
+	for _, value := range c.Config.Groups {
+		buffer = append(buffer, &value)
+	}
+
+	return buffer
+}
+
+func (c *Client) Reload() error {
+	groupName := c.State.GroupState.Active
+
+	err := c.Set(groupName)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func Reload() error {
-	currentState, err := state.Load()
-	if err != nil {
-		return fmt.Errorf("could not load state, err: '%w'", err)
-	}
-	groupName := currentState.GroupState.Active
-
-	err = Set(groupName)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func Print(_ *cobra.Command, groups map[string]config.Group) error {
-	currentState, err := state.Load()
-	if err != nil {
-		return err
-	}
-
+func (c *Client) Print(groups ...*config.Group) error {
 	table := pterm.TableData{
 		{"Active", "Name", "Source(s)"},
 	}
-	for key, value := range groups {
+	for _, value := range groups {
 		active := ""
-		if key == currentState.GroupState.Active {
+		if value.Name == c.State.GroupState.Active {
 			active = "*"
 		}
 		table = append(table, []string{
-			active, key, strings.Join(value.Sources, "\n"),
+			active, value.Name, strings.Join(value.Sources, "\n"),
 		})
 	}
 	// print empty line for better formatting
 	log.Print("")
 
 	// print result table
-	err = pterm.DefaultTable.WithHasHeader().WithData(table).Render()
+	err := pterm.DefaultTable.WithHasHeader().WithData(table).Render()
 	if err != nil {
 		return fmt.Errorf("failed to print table, err: '%w", err)
 	}

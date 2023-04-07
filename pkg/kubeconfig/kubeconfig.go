@@ -11,7 +11,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd/api"
 )
 
-func Load(reader io.Reader) (*api.Config, error) {
+func Read(reader io.Reader) (*api.Config, error) {
 	log := logger.New()
 
 	data, err := io.ReadAll(reader)
