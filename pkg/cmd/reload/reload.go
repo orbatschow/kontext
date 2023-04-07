@@ -46,7 +46,7 @@ func newReloadContextCommand() *cobra.Command {
 func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "reload",
-		Short: "reload [context|group]",
+		Short: "reload <context|group>",
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Help()
 			os.Exit(1)
