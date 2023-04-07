@@ -3,7 +3,6 @@ package set
 import (
 	"os"
 
-	"github.com/orbatschow/kontext/pkg/config"
 	kubectx "github.com/orbatschow/kontext/pkg/context"
 	"github.com/orbatschow/kontext/pkg/group"
 	"github.com/orbatschow/kontext/pkg/logger"
@@ -22,8 +21,7 @@ func newSetGroupCommand() *cobra.Command {
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			log := logger.New()
-			kontextConfig := config.Get()
-			err := group.Set(cmd, kontextConfig, args[0])
+			err := group.Set(cmd, args[0])
 			if err != nil {
 				log.Error(err.Error())
 				os.Exit(1)
@@ -45,8 +43,7 @@ func newSetContextCommand() *cobra.Command {
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			log := logger.New()
-			kontextConfig := config.Get()
-			err := kubectx.Set(cmd, kontextConfig, args[0])
+			err := kubectx.Set(cmd, args[0])
 			if err != nil {
 				log.Error(err.Error())
 				os.Exit(1)
@@ -59,7 +56,7 @@ func newSetContextCommand() *cobra.Command {
 func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set",
-		Short: "set a context or a group",
+		Short: "set [context|group] [name]",
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Help()
 			os.Exit(1)

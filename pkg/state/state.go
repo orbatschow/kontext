@@ -18,8 +18,13 @@ type GroupState struct {
 	Active string `json:"active,omitempty"`
 }
 
+type ContextState struct {
+	Active string `json:"active,omitempty"`
+}
+
 type State struct {
-	GroupState GroupState `json:"groupState"`
+	GroupState   GroupState   `json:"groupState"`
+	ContextState ContextState `json:"contextState"`
 }
 
 var (

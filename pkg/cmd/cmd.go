@@ -4,8 +4,8 @@ import (
 	"os"
 
 	"github.com/orbatschow/kontext/pkg/cmd/get"
+	"github.com/orbatschow/kontext/pkg/cmd/reload"
 	"github.com/orbatschow/kontext/pkg/cmd/set"
-	"github.com/orbatschow/kontext/pkg/config"
 	kubectx "github.com/orbatschow/kontext/pkg/context"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -16,11 +16,10 @@ var rootCmd = &cobra.Command{
 	Short: "manage kubernetes config files, contexts, groups and sources",
 	Run: func(cmd *cobra.Command, args []string) {
 		var name string
-		config := config.Get()
 		if len(args) == 0 {
 			name = ""
 		}
-		err := kubectx.Set(cmd, config, name)
+		err := kubectx.Set(cmd, name)
 		if err != nil {
 			pterm.Printfln("%v", err)
 			os.Exit(1)
@@ -32,6 +31,7 @@ func Execute() {
 	// add commands
 	rootCmd.AddCommand(get.NewCommand())
 	rootCmd.AddCommand(set.NewCommand())
+	rootCmd.AddCommand(reload.NewCommand())
 
 	if err := rootCmd.Execute(); err != nil {
 		pterm.Printfln("%v", err)

@@ -37,12 +37,11 @@ func newGetContextCommand() *cobra.Command {
 		Short: "get contexts, optionally filtered by name",
 		Run: func(cmd *cobra.Command, args []string) {
 			log := logger.New()
-			kontextConfig := config.Get()
 			var contextName string
 			if len(args) > 0 {
 				contextName = args[0]
 			}
-			err := kubectx.Get(cmd, kontextConfig, contextName)
+			err := kubectx.Get(cmd, contextName)
 			if err != nil {
 				log.Error(err.Error())
 				os.Exit(1)
@@ -55,7 +54,7 @@ func newGetContextCommand() *cobra.Command {
 func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get",
-		Short: "get [context(s)|group(s)], defaults to contexts",
+		Short: "get [context|group] [name], defaults to context",
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Help()
 			os.Exit(1)
