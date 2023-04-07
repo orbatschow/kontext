@@ -1,27 +1,32 @@
 # global configuration options
 global:
+  kubeconfig: "$HOME/.config/kontext/kubeconfig.yaml"
+
+# define backup settings for old kubeconfig files
+backup:
+  enabled: true
 
 # groups define a set of sources to include
 groups:
   # a group named "default"
-  default:
+  - name: default
     # all sources referred by this group
     sources:
       - primary
 
   # another group called dev, that refers to the sources of multiple customers
-  dev:
+  - name: dev
     sources:
       - customer-a.dev
       - customer-b.dev
 
   # another group called prod, that refers to a source called prod
-  prod:
+  - name: prod
     sources:
       - prod
 
   # another group called testing, that refers to multiple sources
-  testing:
+  - name: testing
     sources:
       - local
       - private
@@ -29,41 +34,41 @@ groups:
 # define all sources, that are used by groups
 sources:
   # a source called primary, that defines one include and one exclude glob
-  primary:
+  - name: primary
     include:
       - /home/orbatschow/.config/kubernetes/**/*.yaml
     exclude:
       - /home/orbatschow/.config/kubernetes/**/*prod*.yaml
 
   # a source called customer-a.dev, that defines one include and one exclude glob
-  customer-a.dev:
+  - name: customer-a.dev
     include:
       - /home/orbatschow/.config/kubernetes/dev/customer-a/**/*.yaml
     exclude:
       - /home/orbatschow/.config/kubernetes/dev/**/*skip*.yaml
 
   # a source called customer-b.dev, that defines one include and one exclude glob
-  customer-b.dev:
+  - name: customer-b.dev
     include:
       - /home/orbatschow/.config/kubernetes/dev/customer-b/**/*.yaml
     exclude:
       - /home/orbatschow/.config/kubernetes/dev/**/*skip*.yaml
 
   # a source called prod, that defines one include and one exclude glob
-  prod:
+  - name: prod
     include:
       - /home/orbatschow/.config/kubernetes/prod/**/*.yaml
     exclude:
       - /home/orbatschow/.config/kubernetes/prod/**/*skip*.yaml
 
   # a source called local, that defines three include and no exclude globs
-  local:
+  - name: local
     include:
       - /home/orbatschow/.config/kubernetes/orbatschow/**/*.yaml
       - /home/orbatschow/.config/kubernetes/local/**/*.yaml
       - /home/orbatschow/.config/kubernetes/kind/**/*.yaml
 
   # a source called local, that defines one include and no exclude glob
-  private:
+  - name: private
     include:
       - /home/orbatschow/.config/kubernetes/private/**/*.yaml

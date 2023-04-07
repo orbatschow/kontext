@@ -20,23 +20,30 @@ var (
 var config *Config
 
 type Source struct {
+	Name    string   `json:"name"`
 	Include []string `json:"include,omitempty"`
 	Exclude []string `json:"exclude"`
 }
 
 type Group struct {
+	Name    string   `json:"name"`
 	Sources []string `json:"sources"`
 }
 
+type Backup struct {
+	Enabled bool `json:"enabled"`
+}
+
 type Global struct {
-	Kubeconfig                string `json:"kubeconfig,omitempty"`
-	ConfirmKubeconfigOverride bool   `json:"confirmKubeconfigOverride,omitempty"`
+	Kubeconfig string `json:"kubeconfig,omitempty"`
+	Backup     Backup `json:"backup"`
 }
 
 type Config struct {
-	Global  Global            `json:"global,omitempty"`
-	Groups  map[string]Group  `json:"groups"`
-	Sources map[string]Source `json:"sources"`
+	Global  Global   `json:"global,omitempty"`
+	Backup  Backup   `json:"backup"`
+	Groups  []Group  `json:"groups"`
+	Sources []Source `json:"sources"`
 }
 
 // validate will check the given configuration for errors
@@ -53,8 +60,8 @@ func validate(config *Config) error {
 	return nil
 }
 
-// Load will parse a kontext configuration file
-func Load() error {
+// Read will parse a kontext configuration file
+func Read() error {
 	log := logger.New()
 	configFile := path.Join(xdg.ConfigHome, "kontext", "kontext.yaml")
 

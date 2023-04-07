@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/orbatschow/kontext/pkg/backup"
 	"github.com/orbatschow/kontext/pkg/cmd"
 	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/logger"
@@ -12,13 +13,19 @@ func main() {
 	log := logger.New()
 
 	// initialize state
-	err := state.Init()
+	err := state.Read()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
 	// load config
-	err = config.Load()
+	err = config.Read()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	// create backup
+	err = backup.Create(config.Get())
 	if err != nil {
 		log.Fatal(err.Error())
 	}

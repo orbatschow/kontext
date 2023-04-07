@@ -18,8 +18,13 @@ type GroupState struct {
 	Active string `json:"active,omitempty"`
 }
 
+type ContextState struct {
+	Active string `json:"active,omitempty"`
+}
+
 type State struct {
-	GroupState GroupState `json:"groupState"`
+	GroupState   GroupState   `json:"groupState"`
+	ContextState ContextState `json:"contextState"`
 }
 
 var (
@@ -27,9 +32,11 @@ var (
 
 	stateDirectory = path.Join(xdg.StateHome, "kontext")
 	stateFile      = path.Join(stateDirectory, "state.json")
+
+	state *State
 )
 
-func Init() error {
+func initialize() error {
 	log := logger.New()
 
 	// check if the state file already exists
@@ -56,22 +63,25 @@ func Init() error {
 	return nil
 }
 
-func Load() (*State, error) {
+func Read() error {
 	log := logger.New()
-	var state *State
+	err := initialize()
+	if err != nil {
+		return err
+	}
 
 	// load the state file into koanf
 	if err := instance.Load(file.Provider(stateFile), yaml.Parser()); err != nil {
-		return nil, fmt.Errorf("failed to load config file, expected file at '%s'", stateFile)
+		return fmt.Errorf("failed to load config file, expected file at '%s'", stateFile)
 	}
 
 	// unmarshal the state file into struct
 	if err := instance.UnmarshalWithConf("", &state, koanf.UnmarshalConf{Tag: "json"}); err != nil {
-		return nil, fmt.Errorf("could not unmarshal state, err: '%w'", err)
+		return fmt.Errorf("could not unmarshal state, err: '%w'", err)
 	}
 	log.Debug("read state file", log.Args("path", stateFile))
 
-	return state, nil
+	return nil
 }
 
 func Write(state *State) error {
@@ -93,4 +103,8 @@ func Write(state *State) error {
 	log.Debug("finished updating state")
 
 	return nil
+}
+
+func Get() *State {
+	return state
 }

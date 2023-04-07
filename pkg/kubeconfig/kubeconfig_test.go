@@ -70,7 +70,7 @@ func Test_Load(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := Load(tt.args.reader)
+			got, err := Read(tt.args.reader)
 			if !tt.wantErr && err != nil {
 				t.Errorf("expected error")
 			}
@@ -119,7 +119,7 @@ func Test_Write(t *testing.T) {
 					if err != nil {
 						t.Errorf("%v", err)
 					}
-					apiConfig, err := Load(file)
+					apiConfig, err := Read(file)
 					if err != nil {
 						t.Errorf("%v", err)
 					}
@@ -147,7 +147,7 @@ func Test_Write(t *testing.T) {
 					if err != nil {
 						t.Errorf("%v", err)
 					}
-					apiConfig, err := Load(file)
+					apiConfig, err := Read(file)
 					if err != nil {
 						t.Errorf("%v", err)
 					}
@@ -165,7 +165,7 @@ func Test_Write(t *testing.T) {
 			}
 			kontextConfig := tt.args.KontextConfig(tmpFile)
 
-			err = Write(kontextConfig, tt.args.APIConfig)
+			err = Write(tt.args.APIConfig)
 			if !tt.wantErr && err != nil {
 				t.Errorf("expected error")
 			}
