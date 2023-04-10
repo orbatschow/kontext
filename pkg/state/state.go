@@ -2,10 +2,10 @@ package state
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/adrg/xdg"
 	"github.com/knadh/koanf"
@@ -15,14 +15,16 @@ import (
 	"github.com/orbatschow/kontext/pkg/logger"
 )
 
+type History string
+
 type Group struct {
-	Active  string   `json:"active,omitempty"`
-	History []string `json:"history,omitempty"`
+	Active  string    `json:"active,omitempty"`
+	History []History `json:"history,omitempty"`
 }
 
 type Context struct {
-	Active  string   `json:"active,omitempty"`
-	History []string `json:"history,omitempty"`
+	Active  string    `json:"active,omitempty"`
+	History []History `json:"history,omitempty"`
 }
 
 type State struct {
@@ -31,30 +33,38 @@ type State struct {
 }
 
 var (
-	instance = koanf.New(".")
-
-	stateDirectory = path.Join(xdg.StateHome, "kontext")
-	stateFile      = path.Join(stateDirectory, "state.json")
-
-	state *State
+	defaultStateDirectory = path.Join(xdg.StateHome, "kontext")
+	defaultStateFile      = path.Join(defaultStateDirectory, "state.json")
 )
 
 const DefaultMaximumHistorySize = 10
 
-func initialize() error {
-	log := logger.New()
+func computeStateFileLocation(config *config.Config) string {
+	var stateFile string
+	if len(config.State.Location) == 0 {
+		stateFile = defaultStateFile
+	} else {
+		stateFile = config.State.Location
+	}
 
-	// check if the state file already exists
-	_, err := os.Stat(stateFile)
-	errors.Is(err, os.ErrNotExist)
-	if err == nil {
+	return stateFile
+}
+
+// Init checks if the state directory exists and creates all directories and files if necessary
+func Init(config *config.Config) error {
+	log := logger.New()
+	stateFile := computeStateFileLocation(config)
+
+	// return if the state file already exists
+	if _, err := os.Stat(stateFile); err == nil {
 		return nil
 	}
 
 	log.Debug("missing state file, creating now", log.Args("path", stateFile))
 
 	// create state directory
-	err = os.MkdirAll(stateDirectory, 0755)
+	baseStateDirectory, _ := filepath.Split(stateFile)
+	err := os.MkdirAll(baseStateDirectory, 0755)
 	if err != nil {
 		return fmt.Errorf("could not create state directory, err: '%w'", err)
 	}
@@ -68,29 +78,32 @@ func initialize() error {
 	return nil
 }
 
-func Read() error {
+// Read reads the current state file and serialize it with koanf
+func Read(config *config.Config) (*State, error) {
+	instance := koanf.New(".")
+
 	log := logger.New()
-	err := initialize()
-	if err != nil {
-		return err
-	}
+	stateFile := computeStateFileLocation(config)
+	var state *State
 
 	// load the state file into koanf
 	if err := instance.Load(file.Provider(stateFile), yaml.Parser()); err != nil {
-		return fmt.Errorf("failed to load config file, expected file at '%s'", stateFile)
+		return nil, fmt.Errorf("failed to load config file, expected file at '%s'", stateFile)
 	}
 
 	// unmarshal the state file into struct
 	if err := instance.UnmarshalWithConf("", &state, koanf.UnmarshalConf{Tag: "json"}); err != nil {
-		return fmt.Errorf("could not unmarshal state, err: '%w'", err)
+		return nil, fmt.Errorf("could not unmarshal state, err: '%w'", err)
 	}
 	log.Debug("read state file", log.Args("path", stateFile))
 
-	return nil
+	return state, nil
 }
 
-func Write(state *State) error {
+// Write serializes the current state with koanf
+func Write(config *config.Config, state *State) error {
 	log := logger.New()
+	stateFile := computeStateFileLocation(config)
 
 	// marshal the state into json
 	buffer, err := json.Marshal(state)
@@ -110,19 +123,19 @@ func Write(state *State) error {
 	return nil
 }
 
-func Get() *State {
-	return state
-}
-
-func ComputeHistory(config *config.Config, entry string, history []string) []string {
+// ComputeHistory takes the current history and appends a new entry
+// If the history size is larger than the configured or default size, it will remove
+// the oldest entry from the history
+func ComputeHistory(config *config.Config, entry History, history []History) []History {
 	var maxHistorySize int
 
-	if config.History.Size == nil {
+	if config.State.History.Size == nil {
 		maxHistorySize = DefaultMaximumHistorySize
 	} else {
-		maxHistorySize = *config.History.Size
+		maxHistorySize = *config.State.History.Size
 	}
 
+	// if latest entry in history is already equal to the new entry, just return the history
 	if len(history) > 0 && history[len(history)-1] == entry {
 		return history
 	}

@@ -21,7 +21,7 @@ func main() {
 	logger.Init(config.Get())
 
 	// initialize state
-	err = state.Read()
+	err = state.Init(config.Get())
 	if err != nil {
 		log.Fatal(err.Error())
 	}

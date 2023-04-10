@@ -41,7 +41,7 @@ func NewCommand() *cobra.Command {
 				os.Exit(1)
 			}
 
-			err = state.Write(client.State)
+			err = state.Write(client.Config, client.State)
 			if err != nil {
 				log.Error(err.Error())
 				os.Exit(1)

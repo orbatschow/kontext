@@ -12,6 +12,9 @@ global:
   verbosity: 0
 
 # define backup settings for old kubeconfig files
+state:
+  location: $HOME/.local/state/kontext/state.json
+
 backup:
   enabled: true
   location: $HOME/.local/share/kontext

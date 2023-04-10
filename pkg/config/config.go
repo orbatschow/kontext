@@ -41,6 +41,11 @@ type History struct {
 	Size *int `json:"size"`
 }
 
+type State struct {
+	Location string  `json:"location,omitempty"`
+	History  History `json:"history,omitempty"`
+}
+
 type Global struct {
 	Kubeconfig string         `json:"kubeconfig,omitempty"`
 	Verbosity  pterm.LogLevel `json:"verbosity,omitempty"`
@@ -49,7 +54,7 @@ type Global struct {
 type Config struct {
 	Global  Global   `json:"global,omitempty"`
 	Backup  Backup   `json:"backup"`
-	History History  `json:"history,omitempty"`
+	State   State    `json:"state,omitempty"`
 	Groups  []Group  `json:"groups"`
 	Sources []Source `json:"sources"`
 }

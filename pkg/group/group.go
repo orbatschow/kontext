@@ -32,6 +32,11 @@ func New() (*Client, error) {
 		return nil, err
 	}
 
+	state, err := state.Read(config)
+	if err != nil {
+		return nil, err
+	}
+
 	apiConfig, err := kubeconfig.Read(file)
 	if err != nil {
 		return nil, err
@@ -39,7 +44,7 @@ func New() (*Client, error) {
 
 	return &Client{
 		Config:    config,
-		State:     state.Get(),
+		State:     state,
 		APIConfig: apiConfig,
 	}, nil
 }
@@ -49,7 +54,7 @@ func (c *Client) Set(groupName string) error {
 	history := c.State.Group.History
 
 	if len(history) > 1 && groupName == "-" {
-		groupName = history[len(history)-2]
+		groupName = string(history[len(history)-2])
 	}
 
 	if len(groupName) == 0 {
@@ -106,7 +111,7 @@ func (c *Client) Set(groupName string) error {
 	// set new api config and modify state
 	c.APIConfig = apiConfig
 	c.State.Group.Active = groupName
-	c.State.Group.History = state.ComputeHistory(c.Config, groupName, c.State.Group.History)
+	c.State.Group.History = state.ComputeHistory(c.Config, state.History(groupName), c.State.Group.History)
 
 	return nil
 }

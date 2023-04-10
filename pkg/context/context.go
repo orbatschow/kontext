@@ -30,6 +30,11 @@ func New() (*Client, error) {
 		return nil, err
 	}
 
+	state, err := state.Read(config)
+	if err != nil {
+		return nil, err
+	}
+
 	apiConfig, err := kubeconfig.Read(file)
 	if err != nil {
 		return nil, err
@@ -37,7 +42,7 @@ func New() (*Client, error) {
 
 	return &Client{
 		Config:    config,
-		State:     state.Get(),
+		State:     state,
 		APIConfig: apiConfig,
 	}, nil
 }
@@ -72,7 +77,7 @@ func (c *Client) Set(contextName string) error {
 	history := c.State.Context.History
 
 	if len(history) > 1 && contextName == "-" {
-		contextName = history[len(history)-2]
+		contextName = string(history[len(history)-2])
 	}
 
 	if len(contextName) == 0 {
@@ -90,7 +95,7 @@ func (c *Client) Set(contextName string) error {
 
 	c.APIConfig.CurrentContext = contextName
 	c.State.Context.Active = contextName
-	c.State.Context.History = state.ComputeHistory(c.Config, contextName, history)
+	c.State.Context.History = state.ComputeHistory(c.Config, state.History(contextName), history)
 
 	log.Info("switched context", log.Args("context", contextName))
 	return nil

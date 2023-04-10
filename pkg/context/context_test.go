@@ -146,7 +146,7 @@ func Test_Set(t *testing.T) {
 			wantState: &state.State{
 				Context: state.Context{
 					Active: "kind",
-					History: []string{
+					History: []state.History{
 						"kind",
 					},
 				},
