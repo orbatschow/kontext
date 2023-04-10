@@ -12,7 +12,7 @@ Kontext is a single binary application, that takes yet another approach on kubec
 
 ## Demo
 
-
+[Demo](./assets/kontext.gif)
 
 ## Features
 
