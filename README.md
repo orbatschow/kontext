@@ -10,9 +10,6 @@
 
 Kontext is a single binary application, that takes yet another approach on kubeconfig management.
 
-## Demo
-
-
 
 ## Features
 
@@ -34,6 +31,11 @@ Source include or exclude kubeconfig files as a glob pattern. A source always co
 included sources files first and then removes all duplicates. After the include section has
 been computed the same happens for all files, that shall be excluded. Take a look at the
 [example](./example/kontext.yaml) to understand sources in depth.
+
+## Demo
+
+![Demo](./assets/demo.svg)
+
 
 ## Installation
 
