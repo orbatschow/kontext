@@ -34,7 +34,7 @@ been computed the same happens for all files, that shall be excluded. Take a loo
 
 ## Demo
 
-![Demo](./assets/kontext.gif)
+![Demo](./assets/demo.svg)
 
 
 ## Installation
