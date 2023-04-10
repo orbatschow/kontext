@@ -14,7 +14,7 @@ global:
 # define backup settings for old kubeconfig files
 backup:
   enabled: true
-  location: ~/.local/share/kontext
+  location: $HOME/.local/share/kontext
   revisions: 10
 
 # groups define a set of sources to include

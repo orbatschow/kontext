@@ -30,13 +30,12 @@ func Create(config *config.Config) error {
 		return err
 	}
 
-	var backupDirectory string
 	if len(config.Backup.Location) == 0 {
-		backupDirectory = path.Join(xdg.DataHome, "kontext", "backup")
+		config.Backup.Location = path.Join(xdg.DataHome, "kontext", "backup")
 	}
 
-	if _, err := os.Stat(backupDirectory); os.IsNotExist(err) {
-		err = os.MkdirAll(backupDirectory, 0755)
+	if _, err := os.Stat(config.Backup.Location); os.IsNotExist(err) {
+		err = os.MkdirAll(config.Backup.Location, 0755)
 		if err != nil {
 			return fmt.Errorf("could not create backup directory, err: '%w'", err)
 		}
@@ -44,7 +43,7 @@ func Create(config *config.Config) error {
 
 	timestamp := strconv.Itoa(makeTimestamp())
 	backupFileName := fmt.Sprintf("kubeconfig-%s.yaml", timestamp)
-	backupFile, err := os.Create(path.Join(backupDirectory, backupFileName))
+	backupFile, err := os.Create(path.Join(config.Backup.Location, backupFileName))
 	if err != nil {
 		return err
 	}
