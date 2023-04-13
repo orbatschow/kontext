@@ -3,7 +3,6 @@ package state
 import (
 	"bytes"
 	"errors"
-	"math/rand"
 	"os"
 	"path"
 	"path/filepath"
@@ -11,18 +10,10 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/orbatschow/kontext/pkg/config"
+	"github.com/samber/lo"
 )
-
-var charset = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-func randomString(length int) string {
-	buffer := make([]byte, length)
-	for i := range buffer {
-		buffer[i] = charset[rand.Intn(len(charset))]
-	}
-	return string(buffer)
-}
 
 func Test_computeStateFileLocation(t *testing.T) {
 	type args struct {
@@ -82,7 +73,7 @@ func Test_initialize(t *testing.T) {
 					State: config.State{
 						Location: func() string {
 							tempDir := os.TempDir()
-							seed := randomString(10)
+							seed := lo.RandomString(10, lo.LowerCaseLettersCharset)
 							targetDir := path.Join(tempDir, seed)
 							t.Logf("temporary state directory: '%s'", targetDir)
 							return path.Join(targetDir, "state.json")
@@ -97,7 +88,11 @@ func Test_initialize(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := Init(tt.args.Config)
 			if !tt.wantErr && err != nil {
-				t.Errorf("expected error")
+				t.Errorf("unexpected error, err: '%v'", err)
+			}
+
+			if tt.wantErr && err == nil {
+				t.Errorf("expected error, got: '%v'", err)
 			}
 
 			if _, err := os.Stat(tt.args.Config.State.Location); errors.Is(err, os.ErrNotExist) {
@@ -189,14 +184,18 @@ func Test_Read(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Logf("%s", tt.args.Config.State.Location)
 			got, err := Read(tt.args.Config)
 			if !tt.wantErr && err != nil {
-				t.Errorf("expected error")
+				t.Errorf("unexpected error, err: '%v'", err)
 			}
-			t.Logf("%v", got)
-			if !tt.wantErr && !reflect.DeepEqual(tt.want, got) {
-				t.Errorf("want: '%v', got: '%v'", tt.want, tt.args.Config)
+
+			if tt.wantErr && err == nil {
+				t.Errorf("expected error, err: '%v'", err)
+			}
+
+			if !tt.wantErr && !cmp.Equal(tt.want, got) {
+				diff := cmp.Diff(&tt.want, got)
+				t.Errorf("state.Read() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
@@ -220,7 +219,7 @@ func Test_Write(t *testing.T) {
 					State: config.State{
 						Location: func() string {
 							tempDir := os.TempDir()
-							seed := randomString(10)
+							seed := lo.RandomString(10, lo.LowerCaseLettersCharset)
 							targetDir := path.Join(tempDir, seed)
 							t.Logf("temporary state directory: '%s'", targetDir)
 							return path.Join(targetDir, "state.json")
@@ -248,7 +247,7 @@ func Test_Write(t *testing.T) {
 					State: config.State{
 						Location: func() string {
 							tempDir := os.TempDir()
-							seed := randomString(10)
+							seed := lo.RandomString(10, lo.LowerCaseLettersCharset)
 							targetDir := path.Join(tempDir, seed)
 							t.Logf("temporary state directory: '%s'", targetDir)
 							return path.Join(targetDir, "state.json")
@@ -272,14 +271,19 @@ func Test_Write(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// init the state
 			err := Init(tt.args.Config)
-			if !tt.wantErr && err != nil {
-				t.Errorf("expected error")
+			// log every error here, as we do not want to test init
+			if err != nil {
+				t.Errorf("unexpected error, err: '%v'", err)
 			}
 
 			// write the state to the target file
 			err = Write(tt.args.Config, tt.args.State)
 			if !tt.wantErr && err != nil {
-				t.Errorf("expected error")
+				t.Errorf("unexpected error, err: '%v'", err)
+			}
+
+			if tt.wantErr && err == nil {
+				t.Errorf("expected error, got: '%v'", err)
 			}
 
 			// compare written file and want

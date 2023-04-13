@@ -49,6 +49,17 @@ func New() (*Client, error) {
 	}, nil
 }
 
+func (c *Client) Get(groupName string) (*config.Group, error) {
+	match, ok := lo.Find(c.Config.Groups, func(item config.Group) bool {
+		return item.Name == groupName
+	})
+	if !ok {
+		return nil, fmt.Errorf("could not find group: '%s'", groupName)
+	}
+
+	return &match, nil
+}
+
 func (c *Client) Set(groupName string) error {
 	log := logger.New()
 	history := c.State.Group.History
@@ -65,7 +76,7 @@ func (c *Client) Set(groupName string) error {
 		groupName, _ = pterm.DefaultInteractiveSelect.WithMaxHeight(MaxSelectHeight).WithOptions(keys).Show()
 	}
 
-	var files []string
+	var files []*os.File
 
 	group, ok := lo.Find(c.Config.Groups, func(item config.Group) bool {
 		return item.Name == groupName
@@ -82,7 +93,7 @@ func (c *Client) Set(groupName string) error {
 			log.Warn("could not find source", log.Args("source", sourceName, "group", groupName))
 			continue
 		}
-		match, err := source.Expand(&sourceMatch)
+		match, err := source.ComputeFiles(&sourceMatch)
 		if err != nil {
 			return err
 		}
@@ -114,17 +125,6 @@ func (c *Client) Set(groupName string) error {
 	c.State.Group.History = state.ComputeHistory(c.Config, state.History(groupName), c.State.Group.History)
 
 	return nil
-}
-
-func (c *Client) Get(groupName string) (*config.Group, error) {
-	match, ok := lo.Find(c.Config.Groups, func(item config.Group) bool {
-		return item.Name == groupName
-	})
-	if !ok {
-		return nil, fmt.Errorf("could not find group: '%s'", groupName)
-	}
-
-	return &match, nil
 }
 
 func (c *Client) Reload() error {

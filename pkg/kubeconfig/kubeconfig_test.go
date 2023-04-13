@@ -72,7 +72,11 @@ func Test_Load(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := Read(tt.args.reader)
 			if !tt.wantErr && err != nil {
-				t.Errorf("expected error")
+				t.Errorf("unexpected error, err: '%v'", err)
+			}
+
+			if tt.wantErr && err == nil {
+				t.Errorf("expected error, got: '%v'", err)
 			}
 
 			// check if the current context is equal
@@ -128,7 +132,7 @@ func Test_Write(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "should throw an error due to missing file",
+			name: "should throw an error due to missing config",
 			args: args{
 				KontextConfig: func(tmpFile *os.File) *config.Config {
 					kontextConfig := &config.Config{
@@ -138,19 +142,7 @@ func Test_Write(t *testing.T) {
 					}
 					return kontextConfig
 				},
-				APIConfig: func() *api.Config {
-					_, caller, _, _ := runtime.Caller(0)
-					kubeConfigFile := path.Join(caller, "..", "testdata", "01-valid-kubeconfig.yaml")
-					file, err := os.Open(kubeConfigFile)
-					if err != nil {
-						t.Errorf("%v", err)
-					}
-					apiConfig, err := Read(file)
-					if err != nil {
-						t.Errorf("%v", err)
-					}
-					return apiConfig
-				}(),
+				APIConfig: nil,
 			},
 			wantErr: true,
 		},
@@ -164,7 +156,10 @@ func Test_Write(t *testing.T) {
 
 			err = Write(tmpFile, tt.args.APIConfig)
 			if !tt.wantErr && err != nil {
-				t.Errorf("expected error")
+				t.Errorf("unexpected error, err: '%v'", err)
+			}
+			if tt.wantErr && err == nil {
+				t.Errorf("expected error, got: '%v'", err)
 			}
 
 			if tt.after != nil {
@@ -176,7 +171,7 @@ func Test_Write(t *testing.T) {
 
 func Test_Merge(t *testing.T) {
 	type args struct {
-		files []string
+		files []*os.File
 	}
 	tests := []struct {
 		name    string
@@ -187,17 +182,31 @@ func Test_Merge(t *testing.T) {
 		{
 			name: "should merge the kubeconfig successfully",
 			args: args{
-				files: func() []string {
-					var buffer []string
+				files: func() []*os.File {
+					var buffer []*os.File
 
 					_, caller, _, _ := runtime.Caller(0)
-					mergeFileOne := path.Join(caller, "..", "testdata", "03-kontext-merge-1.yaml")
-					mergeFileTwo := path.Join(caller, "..", "testdata", "04-kontext-merge-2.yaml")
-					mergeFileThree := path.Join(caller, "..", "testdata", "05-kontext-merge-3.yaml")
+					kubeconfigFilePathOne := path.Join(caller, "..", "testdata", "03-kontext-merge-1.yaml")
+					kubeconfigFilePathTwo := path.Join(caller, "..", "testdata", "04-kontext-merge-2.yaml")
+					kubeconfigFilePathThree := path.Join(caller, "..", "testdata", "05-kontext-merge-3.yaml")
 
-					buffer = append(buffer, mergeFileOne)
-					buffer = append(buffer, mergeFileTwo)
-					buffer = append(buffer, mergeFileThree)
+					kubeconfigFileOne, err := os.Open(kubeconfigFilePathOne)
+					if err != nil {
+						t.Errorf("%v", err)
+					}
+					buffer = append(buffer, kubeconfigFileOne)
+
+					kubeconfigFileTwo, err := os.Open(kubeconfigFilePathTwo)
+					if err != nil {
+						t.Errorf("%v", err)
+					}
+					buffer = append(buffer, kubeconfigFileTwo)
+
+					kubeconfigFileThree, err := os.Open(kubeconfigFilePathThree)
+					if err != nil {
+						t.Errorf("%v", err)
+					}
+					buffer = append(buffer, kubeconfigFileThree)
 
 					return buffer
 				}(),
@@ -207,17 +216,31 @@ func Test_Merge(t *testing.T) {
 		{
 			name: "should merge the kubeconfig successfully, even if a kubeconfig file is invalid",
 			args: args{
-				files: func() []string {
-					var buffer []string
+				files: func() []*os.File {
+					var buffer []*os.File
 
 					_, caller, _, _ := runtime.Caller(0)
-					mergeFileOne := path.Join(caller, "..", "testdata", "02-invalid-kubeconfig.yaml")
-					mergeFileTwo := path.Join(caller, "..", "testdata", "04-kontext-merge-2.yaml")
-					mergeFileThree := path.Join(caller, "..", "testdata", "05-kontext-merge-3.yaml")
+					kubeconfigFilePathOne := path.Join(caller, "..", "testdata", "02-invalid-kubeconfig.yaml")
+					kubeconfigFilePathTwo := path.Join(caller, "..", "testdata", "04-kontext-merge-2.yaml")
+					kubeconfigFilePathThree := path.Join(caller, "..", "testdata", "05-kontext-merge-3.yaml")
 
-					buffer = append(buffer, mergeFileOne)
-					buffer = append(buffer, mergeFileTwo)
-					buffer = append(buffer, mergeFileThree)
+					kubeconfigFileOne, err := os.Open(kubeconfigFilePathOne)
+					if err != nil {
+						t.Errorf("%v", err)
+					}
+					buffer = append(buffer, kubeconfigFileOne)
+
+					kubeconfigFileTwo, err := os.Open(kubeconfigFilePathTwo)
+					if err != nil {
+						t.Errorf("%v", err)
+					}
+					buffer = append(buffer, kubeconfigFileTwo)
+
+					kubeconfigFileThree, err := os.Open(kubeconfigFilePathThree)
+					if err != nil {
+						t.Errorf("%v", err)
+					}
+					buffer = append(buffer, kubeconfigFileThree)
 
 					return buffer
 				}(),
@@ -229,7 +252,10 @@ func Test_Merge(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := Merge(tt.args.files...)
 			if !tt.wantErr && err != nil {
-				t.Errorf("expected error")
+				t.Errorf("unexpected error, err: '%v'", err)
+			}
+			if tt.wantErr && err == nil {
+				t.Errorf("expected error, got: '%v'", err)
 			}
 
 			if !tt.wantErr && tt.want != nil && got == nil {

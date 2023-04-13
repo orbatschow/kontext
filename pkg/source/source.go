@@ -3,77 +3,64 @@ package source
 import (
 	"fmt"
 	"os"
-	"path"
-	"strconv"
 
-	"github.com/bmatcuk/doublestar/v4"
 	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/logger"
+	"github.com/orbatschow/kontext/pkg/utils/glob"
 	"github.com/samber/lo"
 )
 
-func Expand(source *config.Source) ([]string, error) {
+func ComputeFiles(source *config.Source) ([]*os.File, error) {
 	log := logger.New()
-	var files []string
+	var buffer []*os.File
 
 	// add all file globs from source.Include
 	for _, include := range source.Include {
 		log.Info("expanding include glob", log.Args("glob", include))
 
-		buffer, err := computeGlob(include)
+		matches, err := glob.Expand(glob.Pattern(include))
 		if err != nil {
 			return nil, fmt.Errorf("could not compute glob, err: '%w'", err)
 		}
-		files = append(files, buffer...)
+		buffer = append(buffer, matches...)
 
-		log.Info("found matching files", log.ArgsFromMap(computeFileMap(buffer)))
+		// TODO: replace with print function, that prints a table
+		// log.Info("found matching buffer", log.ArgsFromMap(computeFileMap(matches)))
 	}
 
 	// remove duplicates
-	files = lo.Uniq(files)
-	log.Info("computed kubeconfig files without duplicates", log.ArgsFromMap(computeFileMap(files)))
+	buffer = lo.UniqBy(buffer, func(item *os.File) string {
+		return item.Name()
+	})
+	// TODO: replace with print function, that prints a table
+	// log.Info("computed kubeconfig buffer without duplicates", log.ArgsFromMap(computeFileMap(buffer)))
 
 	// remove all file globs from source.Exclude
 	for _, exclude := range source.Exclude {
 		log.Warn("expanding exclude glob", log.Args("glob", exclude))
 
-		buffer, err := computeGlob(exclude)
+		matches, err := glob.Expand(glob.Pattern(exclude))
 		if err != nil {
 			return nil, fmt.Errorf("could not compute glob, err: '%w'", err)
 		}
-		files, _ = lo.Difference(files, buffer)
 
-		log.Warn("found matching files", log.ArgsFromMap(computeFileMap(buffer)))
+		for i, file := range buffer {
+			_, ok := lo.Find(matches, func(item *os.File) bool {
+				return item.Name() == file.Name()
+			})
+
+			if ok {
+				buffer[i] = nil
+			}
+		}
+
+		buffer = lo.Without(buffer, nil)
+
+		// TODO: replace with print function, that prints a table
+		// log.Warn("found matching buffer", log.ArgsFromMap(computeFileMap(matches)))
 	}
 
-	log.Info("computed final kubeconfig files", log.ArgsFromMap(computeFileMap(files)))
-	return files, nil
-}
-
-// compute glob takes a glob and returns a slice of absolute filepaths
-func computeGlob(glob string) ([]string, error) {
-	var basePath string
-	basePath, glob = doublestar.SplitPattern(glob)
-	fileSystem := os.DirFS(basePath)
-
-	buffer, err := doublestar.Glob(fileSystem, glob)
-	if err != nil {
-		return nil, err
-	}
-
-	for index, file := range buffer {
-		buffer[index] = path.Join(basePath, file)
-	}
-
-	return buffer, err
-}
-
-func computeFileMap(files []string) map[string]any {
-	buffer := map[string]any{}
-
-	for index, file := range files {
-		buffer[strconv.Itoa(index)] = file
-	}
-
-	return buffer
+	// TODO: replace with print function, that prints a table
+	// log.Info("computed final kubeconfig buffer", log.ArgsFromMap(computeFileMap(buffer)))
+	return buffer, nil
 }

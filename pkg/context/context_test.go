@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/state"
 	"k8s.io/client-go/tools/clientcmd/api"
@@ -50,11 +51,16 @@ func Test_Get(t *testing.T) {
 
 			got, err := client.Get(tt.args.ContextName)
 			if !tt.wantErr && err != nil {
-				t.Errorf("expected error")
+				t.Errorf("unexpected error, err: '%v'", err)
 			}
 
-			if !tt.wantErr && !reflect.DeepEqual(tt.want, got) {
-				t.Errorf("want: '%v', got: '%v'", tt.want, got)
+			if tt.wantErr && err == nil {
+				t.Errorf("expected error, got: '%v'", err)
+			}
+
+			if !tt.wantErr && &tt.want != nil && !cmp.Equal(tt.want, got) {
+				diff := cmp.Diff(&tt.want, &client.APIConfig)
+				t.Errorf("client.Get() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
@@ -119,11 +125,13 @@ func Test_Set(t *testing.T) {
 		APIConfig   *api.Config
 	}
 	tests := []struct {
-		name          string
-		args          args
-		wantState     *state.State
-		wantAPIConfig *api.Config
-		wantErr       bool
+		name string
+		args args
+		want struct {
+			state     *state.State
+			apiConfig *api.Config
+		}
+		wantErr bool
 	}{
 		{
 			name: "should change the api config and state to the given context",
@@ -143,19 +151,68 @@ func Test_Set(t *testing.T) {
 					},
 				},
 			},
-			wantState: &state.State{
-				Context: state.Context{
-					Active: "kind",
-					History: []state.History{
-						"kind",
+			want: struct {
+				state     *state.State
+				apiConfig *api.Config
+			}{
+				state: &state.State{
+					Context: state.Context{
+						Active: "kind",
+						History: []state.History{
+							"kind",
+						},
+					},
+				},
+				apiConfig: &api.Config{
+					CurrentContext: "kind",
+					Contexts: map[string]*api.Context{
+						"kind":  {},
+						"local": {},
 					},
 				},
 			},
-			wantAPIConfig: &api.Config{
-				CurrentContext: "kind",
-				Contexts: map[string]*api.Context{
-					"kind":  {},
-					"local": {},
+			wantErr: false,
+		},
+		{
+			name: "should change the api config, state and history to the given context",
+			args: args{
+				ContextName: "kind",
+				Config:      &config.Config{},
+				APIConfig: &api.Config{
+					CurrentContext: "local",
+					Contexts: map[string]*api.Context{
+						"kind":  {},
+						"local": {},
+					},
+				},
+				State: &state.State{
+					Context: state.Context{
+						Active: "local",
+						History: []state.History{
+							"local",
+						},
+					},
+				},
+			},
+			want: struct {
+				state     *state.State
+				apiConfig *api.Config
+			}{
+				state: &state.State{
+					Context: state.Context{
+						Active: "kind",
+						History: []state.History{
+							"local",
+							"kind",
+						},
+					},
+				},
+				apiConfig: &api.Config{
+					CurrentContext: "kind",
+					Contexts: map[string]*api.Context{
+						"kind":  {},
+						"local": {},
+					},
 				},
 			},
 			wantErr: false,
@@ -171,16 +228,23 @@ func Test_Set(t *testing.T) {
 
 			err := client.Set(tt.args.ContextName)
 			if !tt.wantErr && err != nil {
-				t.Errorf("err: '%v'", err)
+				t.Errorf("unexpected err: '%v'", err)
 			}
 
-			if !tt.wantErr && !reflect.DeepEqual(tt.wantState, client.State) {
-				t.Errorf("want: '%v', got: '%v'", tt.wantState, client.State)
+			if tt.wantErr && err == nil {
+				t.Errorf("expected error, got: '%v'", err)
 			}
 
-			if !tt.wantErr && !reflect.DeepEqual(tt.wantAPIConfig, client.APIConfig) {
-				t.Errorf("want: '%v', got: '%v'", tt.wantAPIConfig, client.APIConfig)
+			if !tt.wantErr && &tt.want != nil && !cmp.Equal(tt.want.apiConfig, client.APIConfig) {
+				diff := cmp.Diff(&tt.want, &client.APIConfig)
+				t.Errorf("client.Get() apiConfig mismatch (-want +got):\n%s", diff)
 			}
+
+			if !tt.wantErr && !reflect.DeepEqual(tt.want.state, client.State) {
+				diff := cmp.Diff(&tt.want, &client.APIConfig)
+				t.Errorf("client.Get() state mismatch (-want +got):\n%s", diff)
+			}
+
 		})
 	}
 }

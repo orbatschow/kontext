@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/adrg/xdg v0.4.0
 	github.com/bmatcuk/doublestar/v4 v4.6.0
+	github.com/google/go-cmp v0.5.9
 	github.com/knadh/koanf v1.5.0
 	github.com/pterm/pterm v0.12.58
 	github.com/samber/lo v1.38.1

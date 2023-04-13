@@ -57,8 +57,12 @@ func Test_validate(t *testing.T) {
 			}
 
 			err := validate(tt.args.Config)
-			if tt.wantErr == false && err != nil {
+			if !tt.wantErr && err != nil {
 				t.Errorf("config.validate() = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if tt.wantErr && err == nil {
+				t.Errorf("expected error, got: '%v'", err)
 			}
 		})
 	}
