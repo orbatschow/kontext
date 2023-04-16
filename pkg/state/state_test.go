@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"os"
-	"path"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -14,48 +13,6 @@ import (
 	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/samber/lo"
 )
-
-func Test_computeStateFileLocation(t *testing.T) {
-	type args struct {
-		Config *config.Config
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{
-			name: "should return the default location",
-			args: args{
-				Config: &config.Config{
-					State: config.State{},
-				},
-			},
-			want: defaultStateFile,
-		},
-
-		{
-			name: "should return the default location",
-			args: args{
-				Config: &config.Config{
-					State: config.State{
-						Location: "test-path/test.json",
-					},
-				},
-			},
-			want: "test-path/test.json",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := computeStateFileLocation(tt.args.Config)
-
-			if tt.want != got {
-				t.Errorf("state.computeStateFileLocation(), want: '%s', got: '%s'", tt.want, got)
-			}
-		})
-	}
-}
 
 func Test_initialize(t *testing.T) {
 	type args struct {
@@ -71,12 +28,12 @@ func Test_initialize(t *testing.T) {
 			args: args{
 				Config: &config.Config{
 					State: config.State{
-						Location: func() string {
+						Path: func() string {
 							tempDir := os.TempDir()
 							seed := lo.RandomString(10, lo.LowerCaseLettersCharset)
-							targetDir := path.Join(tempDir, seed)
+							targetDir := filepath.Join(tempDir, seed)
 							t.Logf("temporary state directory: '%s'", targetDir)
-							return path.Join(targetDir, "state.json")
+							return filepath.Join(targetDir, "state.json")
 						}(),
 					},
 				},
@@ -95,11 +52,11 @@ func Test_initialize(t *testing.T) {
 				t.Errorf("expected error, got: '%v'", err)
 			}
 
-			if _, err := os.Stat(tt.args.Config.State.Location); errors.Is(err, os.ErrNotExist) {
+			if _, err := os.Stat(tt.args.Config.State.Path); errors.Is(err, os.ErrNotExist) {
 				t.Errorf("state file does not exist")
 			}
 
-			dir, _ := filepath.Split(tt.args.Config.State.Location)
+			dir, _ := filepath.Split(tt.args.Config.State.Path)
 			err = os.RemoveAll(dir)
 			if !tt.wantErr && err != nil {
 				t.Errorf("could not remove state directory, err: '%v'", err)
@@ -123,9 +80,9 @@ func Test_Read(t *testing.T) {
 			args: args{
 				Config: &config.Config{
 					State: config.State{
-						Location: func() string {
+						Path: func() string {
 							_, caller, _, _ := runtime.Caller(0)
-							stateFile := path.Join(caller, "..", "testdata", "01-valid-state.json")
+							stateFile := filepath.Join(caller, "..", "testdata", "01-valid-state.json")
 							return stateFile
 						}(),
 					},
@@ -154,9 +111,9 @@ func Test_Read(t *testing.T) {
 			args: args{
 				Config: &config.Config{
 					State: config.State{
-						Location: func() string {
+						Path: func() string {
 							_, caller, _, _ := runtime.Caller(0)
-							stateFile := path.Join(caller, "..", "testdata", "02-valid-empty-state.json")
+							stateFile := filepath.Join(caller, "..", "testdata", "02-valid-empty-state.json")
 							return stateFile
 						}(),
 					},
@@ -170,9 +127,9 @@ func Test_Read(t *testing.T) {
 			args: args{
 				Config: &config.Config{
 					State: config.State{
-						Location: func() string {
+						Path: func() string {
 							_, caller, _, _ := runtime.Caller(0)
-							stateFile := path.Join(caller, "..", "testdata", "03-invalid-state.json")
+							stateFile := filepath.Join(caller, "..", "testdata", "03-invalid-state.json")
 							return stateFile
 						}(),
 					},
@@ -217,12 +174,12 @@ func Test_Write(t *testing.T) {
 			args: args{
 				Config: &config.Config{
 					State: config.State{
-						Location: func() string {
+						Path: func() string {
 							tempDir := os.TempDir()
 							seed := lo.RandomString(10, lo.LowerCaseLettersCharset)
-							targetDir := path.Join(tempDir, seed)
+							targetDir := filepath.Join(tempDir, seed)
 							t.Logf("temporary state directory: '%s'", targetDir)
-							return path.Join(targetDir, "state.json")
+							return filepath.Join(targetDir, "state.json")
 						}(),
 					},
 				},
@@ -237,7 +194,7 @@ func Test_Write(t *testing.T) {
 					},
 				},
 			},
-			want:    []byte(`{"group":{"active":"dev"},"context":{"active":"kind-dev"}}`),
+			want:    []byte(`{"group":{"active":"dev"},"context":{"active":"kind-dev"},"backup":{}}`),
 			wantErr: false,
 		},
 		{
@@ -245,12 +202,12 @@ func Test_Write(t *testing.T) {
 			args: args{
 				Config: &config.Config{
 					State: config.State{
-						Location: func() string {
+						Path: func() string {
 							tempDir := os.TempDir()
 							seed := lo.RandomString(10, lo.LowerCaseLettersCharset)
-							targetDir := path.Join(tempDir, seed)
+							targetDir := filepath.Join(tempDir, seed)
 							t.Logf("temporary state directory: '%s'", targetDir)
-							return path.Join(targetDir, "state.json")
+							return filepath.Join(targetDir, "state.json")
 						}(),
 					},
 				},
@@ -263,7 +220,7 @@ func Test_Write(t *testing.T) {
 					},
 				},
 			},
-			want:    []byte(`{"group":{"active":"dev","history":["dev"]},"context":{}}`),
+			want:    []byte(`{"group":{"active":"dev","history":["dev"]},"context":{},"backup":{}}`),
 			wantErr: false,
 		},
 	}
@@ -287,7 +244,7 @@ func Test_Write(t *testing.T) {
 			}
 
 			// compare written file and want
-			got, err := os.ReadFile(tt.args.Config.State.Location)
+			got, err := os.ReadFile(tt.args.Config.State.Path)
 			if err != nil {
 				t.Errorf("%v", err)
 			}
@@ -296,7 +253,7 @@ func Test_Write(t *testing.T) {
 			}
 
 			// cleanup
-			dir, _ := filepath.Split(tt.args.Config.State.Location)
+			dir, _ := filepath.Split(tt.args.Config.State.Path)
 			err = os.RemoveAll(dir)
 			if !tt.wantErr && err != nil {
 				t.Errorf("could not remove state directory, err: '%v'", err)

@@ -3,21 +3,24 @@ package config
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/adrg/xdg"
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/providers/structs"
 	"github.com/pterm/pterm"
 )
 
-// Global koanf instance. Use . as the key path delimiter. This can be / or anything.
 var (
-	instance = koanf.New(".")
+	DefaultConfigPath = filepath.Join(xdg.ConfigHome, "kontext", "kontext.yaml")
+	DefaultStatePath  = filepath.Join(xdg.StateHome, "kontext", "state.json")
 )
 
-var config *Config
+type Client struct {
+	Path string
+}
 
 type Source struct {
 	Name    string   `json:"name"`
@@ -42,8 +45,8 @@ type History struct {
 }
 
 type State struct {
-	Location string  `json:"location,omitempty"`
-	History  History `json:"history,omitempty"`
+	Path    string  `json:"Path,omitempty"`
+	History History `json:"history,omitempty"`
 }
 
 type Global struct {
@@ -59,45 +62,45 @@ type Config struct {
 	Sources []Source `json:"sources"`
 }
 
-// validate will check the given configuration for errors
-func validate(config *Config) error {
-	if len(config.Global.Kubeconfig) == 0 {
-		value, ok := os.LookupEnv("KUBECONFIG")
-		if !ok {
-			return fmt.Errorf("no kubeconfig path provided and KUBECONFIG environment variable unset")
-		}
-
-		config.Global.Kubeconfig = value
-	}
-
-	return nil
-}
-
-// Read will parse a kontext configuration file
-func Read() error {
-	configFile := path.Join(xdg.ConfigHome, "kontext", "kontext.yaml")
+// Read reads the current config file and serialize it with koanf
+func (r *Client) Read() (*Config, error) {
+	instance := koanf.New(".")
+	var config *Config
+	configFile := r.Path
 
 	if err := instance.Load(file.Provider(configFile), yaml.Parser()); err != nil {
-		return fmt.Errorf("failed to load config file, expected file at '%s'", configFile)
+		return nil, fmt.Errorf("failed to load config file, expected file at '%s'", configFile)
+	}
+
+	err := instance.Load(structs.Provider(Config{
+		Global: Global{
+			Kubeconfig: os.Getenv("KUBECONFIG"),
+			Verbosity:  pterm.LogLevelInfo,
+		},
+		Backup: Backup{
+			Enabled: true,
+		},
+		State: State{
+			Path: DefaultStatePath,
+		},
+	}, "koanf"), nil)
+	if err != nil {
+		return nil, err
 	}
 
 	if err := instance.UnmarshalWithConf("", &config, koanf.UnmarshalConf{Tag: "json"}); err != nil {
-		return err
-	}
-
-	err := validate(config)
-	if err != nil {
-		return err
+		return nil, err
 	}
 
 	expandEnvironment(config)
 
-	return nil
+	return config, nil
 }
 
 func expandEnvironment(config *Config) {
 	config.Global.Kubeconfig = os.ExpandEnv(config.Global.Kubeconfig)
 	config.Backup.Location = os.ExpandEnv(config.Backup.Location)
+	config.State.Path = os.ExpandEnv(config.State.Path)
 
 	for i, source := range config.Sources {
 		for j, include := range source.Include {
@@ -108,9 +111,4 @@ func expandEnvironment(config *Config) {
 		}
 		config.Sources[i] = source
 	}
-}
-
-// Get will return a parsed kontext Config struct
-func Get() *Config {
-	return config
 }

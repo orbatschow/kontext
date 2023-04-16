@@ -3,7 +3,7 @@ package kubeconfig
 import (
 	"io"
 	"os"
-	"path"
+	"path/filepath"
 	"runtime"
 	"testing"
 
@@ -26,7 +26,7 @@ func Test_Load(t *testing.T) {
 			args: args{
 				reader: func() io.Reader {
 					_, caller, _, _ := runtime.Caller(0)
-					kubeConfigFile := path.Join(caller, "..", "testdata", "01-valid-kubeconfig.yaml")
+					kubeConfigFile := filepath.Join(caller, "..", "testdata", "01-valid-kubeconfig.yaml")
 					file, err := os.Open(kubeConfigFile)
 					if err != nil {
 						t.Errorf("%v", err)
@@ -54,7 +54,7 @@ func Test_Load(t *testing.T) {
 			args: args{
 				reader: func() io.Reader {
 					_, caller, _, _ := runtime.Caller(0)
-					kubeConfigFile := path.Join(caller, "..", "testdata", "02-invalid-kubeconfig.yaml")
+					kubeConfigFile := filepath.Join(caller, "..", "testdata", "02-invalid-kubeconfig.yaml")
 					file, err := os.Open(kubeConfigFile)
 					if err != nil {
 						t.Errorf("%v", err)
@@ -117,7 +117,7 @@ func Test_Write(t *testing.T) {
 				},
 				APIConfig: func() *api.Config {
 					_, caller, _, _ := runtime.Caller(0)
-					kubeConfigFile := path.Join(caller, "..", "testdata", "01-valid-kubeconfig.yaml")
+					kubeConfigFile := filepath.Join(caller, "..", "testdata", "01-valid-kubeconfig.yaml")
 					file, err := os.Open(kubeConfigFile)
 					if err != nil {
 						t.Errorf("%v", err)
@@ -186,27 +186,20 @@ func Test_Merge(t *testing.T) {
 					var buffer []*os.File
 
 					_, caller, _, _ := runtime.Caller(0)
-					kubeconfigFilePathOne := path.Join(caller, "..", "testdata", "03-kontext-merge-1.yaml")
-					kubeconfigFilePathTwo := path.Join(caller, "..", "testdata", "04-kontext-merge-2.yaml")
-					kubeconfigFilePathThree := path.Join(caller, "..", "testdata", "05-kontext-merge-3.yaml")
-
-					kubeconfigFileOne, err := os.Open(kubeconfigFilePathOne)
-					if err != nil {
-						t.Errorf("%v", err)
+					filenames := []string{
+						"03-kontext-merge-1.yaml",
+						"04-kontext-merge-2.yaml",
+						"05-kontext-merge-3.yaml",
 					}
-					buffer = append(buffer, kubeconfigFileOne)
 
-					kubeconfigFileTwo, err := os.Open(kubeconfigFilePathTwo)
-					if err != nil {
-						t.Errorf("%v", err)
+					for _, filename := range filenames {
+						path := filepath.Join(caller, "..", "testdata", filename)
+						file, err := os.Open(path)
+						if err != nil {
+							t.Errorf("%v", err)
+						}
+						buffer = append(buffer, file)
 					}
-					buffer = append(buffer, kubeconfigFileTwo)
-
-					kubeconfigFileThree, err := os.Open(kubeconfigFilePathThree)
-					if err != nil {
-						t.Errorf("%v", err)
-					}
-					buffer = append(buffer, kubeconfigFileThree)
 
 					return buffer
 				}(),
@@ -220,27 +213,20 @@ func Test_Merge(t *testing.T) {
 					var buffer []*os.File
 
 					_, caller, _, _ := runtime.Caller(0)
-					kubeconfigFilePathOne := path.Join(caller, "..", "testdata", "02-invalid-kubeconfig.yaml")
-					kubeconfigFilePathTwo := path.Join(caller, "..", "testdata", "04-kontext-merge-2.yaml")
-					kubeconfigFilePathThree := path.Join(caller, "..", "testdata", "05-kontext-merge-3.yaml")
-
-					kubeconfigFileOne, err := os.Open(kubeconfigFilePathOne)
-					if err != nil {
-						t.Errorf("%v", err)
+					filenames := []string{
+						"02-invalid-kubeconfig.yaml",
+						"04-kontext-merge-2.yaml",
+						"05-kontext-merge-3.yaml",
 					}
-					buffer = append(buffer, kubeconfigFileOne)
 
-					kubeconfigFileTwo, err := os.Open(kubeconfigFilePathTwo)
-					if err != nil {
-						t.Errorf("%v", err)
+					for _, filename := range filenames {
+						path := filepath.Join(caller, "..", "testdata", filename)
+						file, err := os.Open(path)
+						if err != nil {
+							t.Errorf("%v", err)
+						}
+						buffer = append(buffer, file)
 					}
-					buffer = append(buffer, kubeconfigFileTwo)
-
-					kubeconfigFileThree, err := os.Open(kubeconfigFilePathThree)
-					if err != nil {
-						t.Errorf("%v", err)
-					}
-					buffer = append(buffer, kubeconfigFileThree)
 
 					return buffer
 				}(),

@@ -1,8 +1,10 @@
 package set
 
 import (
+	"log"
 	"os"
 
+	"github.com/orbatschow/kontext/pkg/backup"
 	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/context"
 	"github.com/orbatschow/kontext/pkg/group"
@@ -11,6 +13,38 @@ import (
 	"github.com/orbatschow/kontext/pkg/state"
 	"github.com/spf13/cobra"
 )
+
+func Init(_ *cobra.Command, _ []string) {
+	// load currentConfig
+	configClient := &config.Client{
+		Path: config.DefaultConfigPath,
+	}
+	currentConfig, err := configClient.Read()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	// initialize logger
+	logger.Init(currentConfig)
+
+	// initialize currentState
+	err = state.Init(currentConfig)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	// read the current currentState
+	currentState, err := state.Read(currentConfig)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	// create backup
+	err = backup.Reconcile(currentConfig, currentState)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+}
 
 func newSetGroupCommand(_ *cobra.Command, args []string) {
 	log := logger.New()
@@ -33,7 +67,7 @@ func newSetGroupCommand(_ *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	file, err := os.OpenFile(config.Get().Global.Kubeconfig, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	file, err := os.OpenFile(client.Config.Global.Kubeconfig, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		log.Error(err.Error())
 		os.Exit(1)
@@ -72,7 +106,7 @@ func NewSetContextCommand(_ *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	file, err := os.OpenFile(config.Get().Global.Kubeconfig, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	file, err := os.OpenFile(client.Config.Global.Kubeconfig, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		log.Error(err.Error())
 		os.Exit(1)
@@ -112,7 +146,8 @@ If neither, context nor group is specified, this command will set the context.
 When providing a group name, the switch will be performed immediately.
 '-' is a reserved group name, that will cause a switch to the previously active group.
 		`,
-		Run: newSetGroupCommand,
+		PreRun: Init,
+		Run:    newSetGroupCommand,
 	}
 
 	setContextCommand := &cobra.Command{
@@ -122,7 +157,8 @@ When providing a group name, the switch will be performed immediately.
 When providing a context name, the switch will be performed immediately.
 '-' is a reserved context name, that will cause a switch to the previously active context.
 		`,
-		Run: NewSetContextCommand,
+		PreRun: Init,
+		Run:    NewSetContextCommand,
 	}
 
 	cmd.AddCommand(setGroupCommand)

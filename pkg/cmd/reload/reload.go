@@ -3,7 +3,7 @@ package reload
 import (
 	"os"
 
-	"github.com/orbatschow/kontext/pkg/config"
+	"github.com/orbatschow/kontext/pkg/cmd/set"
 	"github.com/orbatschow/kontext/pkg/group"
 	"github.com/orbatschow/kontext/pkg/kubeconfig"
 	"github.com/orbatschow/kontext/pkg/logger"
@@ -13,8 +13,9 @@ import (
 
 func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "reload",
-		Short: "reload the active group",
+		Use:    "reload",
+		Short:  "reload the active group",
+		PreRun: set.Init,
 		Run: func(cmd *cobra.Command, args []string) {
 			log := logger.New()
 
@@ -30,7 +31,7 @@ func NewCommand() *cobra.Command {
 				os.Exit(1)
 			}
 
-			file, err := os.OpenFile(config.Get().Global.Kubeconfig, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+			file, err := os.OpenFile(client.Config.Global.Kubeconfig, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 			if err != nil {
 				log.Error(err.Error())
 				os.Exit(1)

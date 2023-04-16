@@ -24,7 +24,13 @@ const (
 )
 
 func New() (*Client, error) {
-	config := config.Get()
+	configClient := &config.Client{
+		Path: config.DefaultConfigPath,
+	}
+	config, err := configClient.Read()
+	if err != nil {
+		return nil, err
+	}
 	file, err := os.Open(config.Global.Kubeconfig)
 	if err != nil {
 		return nil, err

@@ -2,7 +2,7 @@ package source
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"runtime"
 	"testing"
 
@@ -26,8 +26,8 @@ func Test_ComputeFiles(t *testing.T) {
 			args: args{
 				Source: func() *config.Source {
 					_, caller, _, _ := runtime.Caller(0)
-					include := path.Join(caller, "..", "testdata", "*merge*.yaml")
-					exclude := path.Join(caller, "..", "testdata", "*merge-invalid.yaml")
+					include := filepath.Join(caller, "..", "testdata", "*merge*.yaml")
+					exclude := filepath.Join(caller, "..", "testdata", "*merge-invalid.yaml")
 
 					return &config.Source{
 						Include: []string{
@@ -47,9 +47,9 @@ func Test_ComputeFiles(t *testing.T) {
 				var buffer []*os.File
 
 				_, caller, _, _ := runtime.Caller(0)
-				kubeconfigFilePathOne := path.Join(caller, "..", "testdata", "01-kontext-merge-1.yaml")
-				kubeconfigFilePathTwo := path.Join(caller, "..", "testdata", "02-kontext-merge-2.yaml")
-				kubeconfigFilePathThree := path.Join(caller, "..", "testdata", "03-kontext-merge-3.yaml")
+				kubeconfigFilePathOne := filepath.Join(caller, "..", "testdata", "01-kontext-merge-1.yaml")
+				kubeconfigFilePathTwo := filepath.Join(caller, "..", "testdata", "02-kontext-merge-2.yaml")
+				kubeconfigFilePathThree := filepath.Join(caller, "..", "testdata", "03-kontext-merge-3.yaml")
 
 				kubeconfigFileOne, err := os.Open(kubeconfigFilePathOne)
 				if err != nil {

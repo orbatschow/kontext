@@ -1,0 +1,32 @@
+global:
+  kubeconfig: "$HOME/.config/kontext/kubeconfig.yaml"
+  verbosity: 3
+
+backup:
+  enabled: true
+
+state:
+  path: $HOME/.local/state/kontext/state.json
+
+groups:
+  - name: default
+    context: kind-local
+    sources:
+      - default
+
+  - name: dev
+    sources:
+      - dev
+
+sources:
+  - name: default
+    include:
+      - $HOME/.config/kontext/**/*.yaml
+    exclude:
+      - $HOME/.config/kontext/**/*prod*.yaml
+
+  - name: dev
+    include:
+      - $HOME/.config/kontext/dev/**/*.yaml
+    exclude:
+      - $HOME/.config/kontext/dev/**/*prod*.yaml

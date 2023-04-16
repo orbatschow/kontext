@@ -1,19 +1,42 @@
 package get
 
 import (
+	"log"
 	"os"
 
 	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/context"
 	"github.com/orbatschow/kontext/pkg/group"
 	"github.com/orbatschow/kontext/pkg/logger"
+	"github.com/orbatschow/kontext/pkg/state"
 	"github.com/spf13/cobra"
 )
 
+func Init(_ *cobra.Command, _ []string) {
+	// load config
+	configClient := &config.Client{
+		Path: config.DefaultConfigPath,
+	}
+	currentConfig, err := configClient.Read()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	// initialize logger
+	logger.Init(currentConfig)
+
+	// initialize state
+	err = state.Init(currentConfig)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+}
+
 func newGetGroupCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "group [name]",
-		Short: "get groups, optionally filtered by name",
+		Use:    "group [name]",
+		Short:  "get groups, optionally filtered by name",
+		PreRun: Init,
 		Run: func(cmd *cobra.Command, args []string) {
 			log := logger.New()
 			var groupName string
@@ -52,8 +75,9 @@ func newGetGroupCommand() *cobra.Command {
 
 func newGetContextCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "context [name]",
-		Short: "get contexts, optionally filtered by name",
+		Use:    "context [name]",
+		Short:  "get contexts, optionally filtered by name",
+		PreRun: Init,
 		Run: func(cmd *cobra.Command, args []string) {
 			log := logger.New()
 			var contextName string

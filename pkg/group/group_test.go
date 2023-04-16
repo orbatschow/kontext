@@ -1,7 +1,7 @@
 package group
 
 import (
-	"path"
+	"path/filepath"
 	"runtime"
 	"testing"
 
@@ -176,7 +176,7 @@ func Test_Set(t *testing.T) {
 							Include: func() []string {
 								var buffer []string
 								_, caller, _, _ := runtime.Caller(0)
-								kubeConfigFile := path.Join(caller, "..", "testdata", "01-valid-kubeconfig.yaml")
+								kubeConfigFile := filepath.Join(caller, "..", "testdata", "01-valid-kubeconfig.yaml")
 
 								buffer = append(buffer, kubeConfigFile)
 
@@ -231,7 +231,7 @@ func Test_Set(t *testing.T) {
 							Include: func() []string {
 								var buffer []string
 								_, caller, _, _ := runtime.Caller(0)
-								kubeConfigFile := path.Join(caller, "..", "testdata", "01-valid-kubeconfig.yaml")
+								kubeConfigFile := filepath.Join(caller, "..", "testdata", "01-valid-kubeconfig.yaml")
 
 								buffer = append(buffer, kubeConfigFile)
 
@@ -283,11 +283,10 @@ func Test_Set(t *testing.T) {
 				"Extensions",
 			)
 
-			if !tt.wantErr && &tt.want.APIConfig != nil && !cmp.Equal(tt.want.APIConfig, client.APIConfig, ignored) {
+			if !tt.wantErr && tt.want.APIConfig != nil && !cmp.Equal(tt.want.APIConfig, client.APIConfig, ignored) {
 				diff := cmp.Diff(&tt.want.APIConfig, &client.APIConfig, ignored)
 				t.Errorf("group.Set() mismatch (-want +got):\n%s", diff)
 			}
-
 		})
 	}
 }

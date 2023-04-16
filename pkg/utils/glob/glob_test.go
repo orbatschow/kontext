@@ -2,7 +2,7 @@ package glob
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"runtime"
 	"testing"
 
@@ -25,7 +25,7 @@ func Test_Expand(t *testing.T) {
 			args: args{
 				Glob: func() Pattern {
 					_, caller, _, _ := runtime.Caller(0)
-					glob := path.Join(caller, "..", "testdata", "*merge*.yaml")
+					glob := filepath.Join(caller, "..", "testdata", "*merge*.yaml")
 					return Pattern(glob)
 				}(),
 			},
@@ -33,9 +33,9 @@ func Test_Expand(t *testing.T) {
 				var buffer []*os.File
 
 				_, caller, _, _ := runtime.Caller(0)
-				kubeconfigFilePathOne := path.Join(caller, "..", "testdata", "01-kontext-merge-1.yaml")
-				kubeconfigFilePathTwo := path.Join(caller, "..", "testdata", "02-kontext-merge-2.yaml")
-				kubeconfigFilePathThree := path.Join(caller, "..", "testdata", "03-kontext-merge-3.yaml")
+				kubeconfigFilePathOne := filepath.Join(caller, "..", "testdata", "01-kontext-merge-1.yaml")
+				kubeconfigFilePathTwo := filepath.Join(caller, "..", "testdata", "02-kontext-merge-2.yaml")
+				kubeconfigFilePathThree := filepath.Join(caller, "..", "testdata", "03-kontext-merge-3.yaml")
 
 				kubeconfigFileOne, err := os.Open(kubeconfigFilePathOne)
 				if err != nil {
@@ -90,7 +90,6 @@ func Test_Expand(t *testing.T) {
 				diff := cmp.Diff(wantNames, gotNames)
 				t.Errorf("glob.Expand() mismatch (-want +got):\n%s", diff)
 			}
-
 		})
 	}
 }

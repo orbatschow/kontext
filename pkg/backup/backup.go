@@ -3,35 +3,24 @@ package backup
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/adrg/xdg"
 	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/kubeconfig"
 	"github.com/orbatschow/kontext/pkg/logger"
-	"github.com/orbatschow/kontext/pkg/utils/glob"
+	"github.com/orbatschow/kontext/pkg/state"
 )
 
 const (
-	backupFileGlob = "kubeconfig-*.yaml"
+	defaultRevisionLimit = 10
 )
 
 type Filename string
 
-func Reconcile(config *config.Config) error {
-	err := create(config)
-	if err != nil {
-		return err
-	}
-
-	backups, err := list(config)
-	if err != nil {
-		return err
-	}
-}
-
-func create(config *config.Config) error {
+// Reconcile creates a new backup revision (if backups are enabled), updates the state and cleans up old revisions
+func Reconcile(config *config.Config, currentState *state.State) error {
 	log := logger.New()
 
 	if !config.Backup.Enabled {
@@ -39,33 +28,21 @@ func create(config *config.Config) error {
 		return nil
 	}
 
-	file, err := os.Open(config.Global.Kubeconfig)
-	if err != nil {
-		return err
-	}
-	apiConfig, err := kubeconfig.Read(file)
-	if err != nil {
-		return err
-	}
-
-	if len(config.Backup.Location) == 0 {
-		config.Backup.Location = path.Join(xdg.DataHome, "kontext", "backup")
-	}
-
-	if _, err := os.Stat(config.Backup.Location); os.IsNotExist(err) {
-		err = os.MkdirAll(config.Backup.Location, 0755)
-		if err != nil {
-			return fmt.Errorf("could not create backup directory, err: '%w'", err)
-		}
-	}
-
-	backupFileName, err := computeBackupFileName(config)
-	backupFile, err := os.Create(string(backupFileName))
+	// create a new backup
+	backupFile, err := create(config)
 	if err != nil {
 		return err
 	}
 
-	err = kubeconfig.Write(backupFile, apiConfig)
+	// add the new backup revision to the current currentState
+	addRevision(currentState, backupFile)
+
+	err = enforceRevisionLimit(config, currentState)
+	if err != nil {
+		return err
+	}
+
+	err = state.Write(config, currentState)
 	if err != nil {
 		return err
 	}
@@ -73,68 +50,90 @@ func create(config *config.Config) error {
 	return nil
 }
 
-func remove(config *config.Config) error {
-	log := logger.New()
-
-	if !config.Backup.Enabled {
-		log.Warn("skipping backup, it is disabled")
-		return nil
-	}
-
+// create creates a new backup revision
+func create(config *config.Config) (*os.File, error) {
 	file, err := os.Open(config.Global.Kubeconfig)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	apiConfig, err := kubeconfig.Read(file)
-	if err != nil {
-		return err
-	}
-
-	if len(config.Backup.Location) == 0 {
-		config.Backup.Location = path.Join(xdg.DataHome, "kontext", "backup")
-	}
-
-	if _, err := os.Stat(config.Backup.Location); os.IsNotExist(err) {
-		err = os.MkdirAll(config.Backup.Location, 0755)
-		if err != nil {
-			return fmt.Errorf("could not create backup directory, err: '%w'", err)
-		}
-	}
-
-	backupFileName, err := computeBackupFileName(config)
-	backupFile, err := os.Create(string(backupFileName))
-	if err != nil {
-		return err
-	}
-
-	err = kubeconfig.Write(backupFile, apiConfig)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func list(config *config.Config) ([]*os.File, error) {
-	pattern := glob.Pattern(path.Join(config.Backup.Location, backupFileGlob))
-	buffer, err := glob.Expand(pattern)
 	if err != nil {
 		return nil, err
 	}
 
-	return buffer, nil
+	if len(config.Backup.Location) == 0 {
+		config.Backup.Location = filepath.Join(xdg.DataHome, "kontext", "backup")
+	}
+
+	if _, err := os.Stat(config.Backup.Location); os.IsNotExist(err) {
+		err = os.MkdirAll(config.Backup.Location, 0755)
+		if err != nil {
+			return nil, fmt.Errorf("could not create backup directory, err: '%w'", err)
+		}
+	}
+
+	backupFileName := computeBackupFileName(config)
+	backupFile, err := os.Create(string(backupFileName))
+	if err != nil {
+		return nil, err
+	}
+
+	err = kubeconfig.Write(backupFile, apiConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return backupFile, nil
 }
 
-func sortByDate([]os.File) []Filename {
-
+// addRevision adds a new backup revision to the current state
+func addRevision(currentState *state.State, backupFile *os.File) {
+	currentState.Backup.Revisions = append(currentState.Backup.Revisions, state.Revision(backupFile.Name()))
 }
 
-func computeBackupFileName(config *config.Config) (Filename, error) {
+// enforceRevisionLimit will check if the given revision limit is reached and
+// remove old backup revisions if necessary
+func enforceRevisionLimit(config *config.Config, state *state.State) error {
+	log := logger.New()
+
+	var revisionLimit int
+	if config.Backup.Revisions == nil {
+		revisionLimit = defaultRevisionLimit
+	} else {
+		revisionLimit = *config.Backup.Revisions
+	}
+	if revisionLimit >= len(state.Backup.Revisions) {
+		return nil
+	}
+
+	outdatedRevisions := len(state.Backup.Revisions) - revisionLimit
+	if outdatedRevisions <= 0 {
+		return nil
+	}
+
+	for i := 0; i < outdatedRevisions; i++ {
+		file, err := os.Open(string(state.Backup.Revisions[i]))
+		if err != nil {
+			return err
+		}
+
+		log.Info("removing backup revision", log.Args("file", file.Name()))
+		err = os.Remove(file.Name())
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// computeBackupFileName builds the file name for the new backup
+func computeBackupFileName(config *config.Config) Filename {
 	// compute the current timestamp
 	timestamp := int(time.Now().UnixNano() / int64(time.Millisecond))
 	// compute the backup file name
-	backupFileName := fmt.Sprintf("kubeconfig-%s.yaml", timestamp)
+	backupFileName := fmt.Sprintf("kubeconfig-%d.yaml", timestamp)
 	// compute the backup file path
-	backupFilePath := path.Join(config.Backup.Location, backupFileName)
-	return Filename(backupFilePath), nil
+	backupFilePath := filepath.Join(config.Backup.Location, backupFileName)
+	return Filename(backupFilePath)
 }

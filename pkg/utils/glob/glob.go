@@ -3,7 +3,7 @@ package glob
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/bmatcuk/doublestar/v4"
 )
@@ -23,7 +23,7 @@ func Expand(glob Pattern) ([]*os.File, error) {
 	}
 
 	for _, filename := range matches {
-		file, err := os.Open(path.Join(basePath, filename))
+		file, err := os.Open(filepath.Join(basePath, filename))
 		if err != nil {
 			return nil, fmt.Errorf("could not open file: '%s'", filename)
 		}

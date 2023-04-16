@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 
-	"github.com/adrg/xdg"
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
@@ -16,6 +14,7 @@ import (
 )
 
 type History string
+type Revision string
 
 type Group struct {
 	Active  string    `json:"active,omitempty"`
@@ -27,50 +26,38 @@ type Context struct {
 	History []History `json:"history,omitempty"`
 }
 
+type Backup struct {
+	Revisions []Revision `json:"revisions,omitempty"`
+}
+
 type State struct {
 	Group   Group   `json:"group"`
 	Context Context `json:"context"`
+	Backup  Backup  `json:"backup"`
 }
-
-var (
-	defaultStateDirectory = path.Join(xdg.StateHome, "kontext")
-	defaultStateFile      = path.Join(defaultStateDirectory, "state.json")
-)
 
 const DefaultMaximumHistorySize = 10
-
-func computeStateFileLocation(config *config.Config) string {
-	var stateFile string
-	if len(config.State.Location) == 0 {
-		stateFile = defaultStateFile
-	} else {
-		stateFile = config.State.Location
-	}
-
-	return stateFile
-}
 
 // Init checks if the state directory exists and creates all directories and files if necessary
 func Init(config *config.Config) error {
 	log := logger.New()
-	stateFile := computeStateFileLocation(config)
 
 	// return if the state file already exists
-	if _, err := os.Stat(stateFile); err == nil {
+	if _, err := os.Stat(config.State.Path); err == nil {
 		return nil
 	}
 
-	log.Debug("missing state file, creating now", log.Args("path", stateFile))
+	log.Debug("missing state file, creating now", log.Args("path", config.State.Path))
 
 	// create state directory
-	baseStateDirectory, _ := filepath.Split(stateFile)
+	baseStateDirectory, _ := filepath.Split(config.State.Path)
 	err := os.MkdirAll(baseStateDirectory, 0755)
 	if err != nil {
 		return fmt.Errorf("could not create state directory, err: '%w'", err)
 	}
 
 	// create state file
-	_, err = os.Create(stateFile)
+	_, err = os.Create(config.State.Path)
 	if err != nil {
 		return fmt.Errorf("could not create state file, err: '%w'", err)
 	}
@@ -83,19 +70,18 @@ func Read(config *config.Config) (*State, error) {
 	instance := koanf.New(".")
 
 	log := logger.New()
-	stateFile := computeStateFileLocation(config)
 	var state *State
 
 	// load the state file into koanf
-	if err := instance.Load(file.Provider(stateFile), yaml.Parser()); err != nil {
-		return nil, fmt.Errorf("failed to load config file, expected file at '%s'", stateFile)
+	if err := instance.Load(file.Provider(config.State.Path), yaml.Parser()); err != nil {
+		return nil, fmt.Errorf("failed to load config file, expected file at '%s'", config.State.Path)
 	}
 
 	// unmarshal the state file into struct
 	if err := instance.UnmarshalWithConf("", &state, koanf.UnmarshalConf{Tag: "json"}); err != nil {
 		return nil, fmt.Errorf("could not unmarshal state, err: '%w'", err)
 	}
-	log.Debug("read state file", log.Args("path", stateFile))
+	log.Debug("read state file", log.Args("path", config.State.Path))
 
 	return state, nil
 }
@@ -103,7 +89,6 @@ func Read(config *config.Config) (*State, error) {
 // Write serializes the current state with koanf
 func Write(config *config.Config, state *State) error {
 	log := logger.New()
-	stateFile := computeStateFileLocation(config)
 
 	// marshal the state into json
 	buffer, err := json.Marshal(state)
@@ -114,7 +99,7 @@ func Write(config *config.Config, state *State) error {
 	log.Debug("updating state", log.Args("data", string(buffer)))
 
 	// write the state into the state file
-	err = os.WriteFile(stateFile, buffer, 0600)
+	err = os.WriteFile(config.State.Path, buffer, 0600)
 	if err != nil {
 		return fmt.Errorf("could not write state to file, err: '%w'", err)
 	}

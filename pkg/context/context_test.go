@@ -58,7 +58,7 @@ func Test_Get(t *testing.T) {
 				t.Errorf("expected error, got: '%v'", err)
 			}
 
-			if !tt.wantErr && &tt.want != nil && !cmp.Equal(tt.want, got) {
+			if !tt.wantErr && tt.want != nil && !cmp.Equal(tt.want, got) {
 				diff := cmp.Diff(&tt.want, &client.APIConfig)
 				t.Errorf("client.Get() mismatch (-want +got):\n%s", diff)
 			}
@@ -127,7 +127,7 @@ func Test_Set(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want struct {
+		want *struct {
 			state     *state.State
 			apiConfig *api.Config
 		}
@@ -151,7 +151,7 @@ func Test_Set(t *testing.T) {
 					},
 				},
 			},
-			want: struct {
+			want: &struct {
 				state     *state.State
 				apiConfig *api.Config
 			}{
@@ -194,7 +194,7 @@ func Test_Set(t *testing.T) {
 					},
 				},
 			},
-			want: struct {
+			want: &struct {
 				state     *state.State
 				apiConfig *api.Config
 			}{
@@ -235,7 +235,7 @@ func Test_Set(t *testing.T) {
 				t.Errorf("expected error, got: '%v'", err)
 			}
 
-			if !tt.wantErr && &tt.want != nil && !cmp.Equal(tt.want.apiConfig, client.APIConfig) {
+			if !tt.wantErr && tt.want != nil && !cmp.Equal(tt.want.apiConfig, client.APIConfig) {
 				diff := cmp.Diff(&tt.want, &client.APIConfig)
 				t.Errorf("client.Get() apiConfig mismatch (-want +got):\n%s", diff)
 			}
@@ -244,7 +244,6 @@ func Test_Set(t *testing.T) {
 				diff := cmp.Diff(&tt.want, &client.APIConfig)
 				t.Errorf("client.Get() state mismatch (-want +got):\n%s", diff)
 			}
-
 		})
 	}
 }
