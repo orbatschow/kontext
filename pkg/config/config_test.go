@@ -36,7 +36,7 @@ func Test_Read(t *testing.T) {
 			},
 			want: &Config{
 				Global: Global{
-					Kubeconfig: "/home/nilsorbat/.config/kontext/kubeconfig.yaml",
+					Kubeconfig: filepath.Join(xdg.ConfigHome, "kontext", "kubeconfig.yaml"),
 					Verbosity:  pterm.LogLevelInfo,
 				},
 				Backup: Backup{
