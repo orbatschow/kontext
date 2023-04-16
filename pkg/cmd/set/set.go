@@ -17,7 +17,7 @@ import (
 func Init(_ *cobra.Command, _ []string) {
 	// load currentConfig
 	configClient := &config.Client{
-		Path: config.DefaultConfigPath,
+		File: config.DefaultConfigPath,
 	}
 	currentConfig, err := configClient.Read()
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/adrg/xdg"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pterm/pterm"
 )
@@ -26,7 +27,7 @@ func Test_Read(t *testing.T) {
 			name: "should read the config file successfully",
 			args: args{
 				Reader: &Client{
-					Path: func() string {
+					File: func() string {
 						_, caller, _, _ := runtime.Caller(0)
 						path := filepath.Join(caller, "..", "testdata", "01-valid-config.yaml")
 						return path
@@ -42,7 +43,7 @@ func Test_Read(t *testing.T) {
 					Enabled: true,
 				},
 				State: State{
-					Path:    os.ExpandEnv("$HOME/.local/state/kontext/state.json"),
+					File:    filepath.Join(xdg.StateHome, "kontext", "state.json"),
 					History: History{},
 				},
 				Groups: []Group{
@@ -101,7 +102,7 @@ func Test_Read(t *testing.T) {
 					}
 				}(),
 				Reader: &Client{
-					Path: func() string {
+					File: func() string {
 						_, caller, _, _ := runtime.Caller(0)
 						path := filepath.Join(caller, "..", "testdata", "02-valid-config-default-values.yaml")
 						return path
@@ -119,10 +120,11 @@ func Test_Read(t *testing.T) {
 					Verbosity: pterm.LogLevelInfo,
 				},
 				Backup: Backup{
-					Enabled: true,
+					Enabled:   true,
+					Directory: filepath.Join(xdg.DataHome, "kontext", "backup"),
 				},
 				State: State{
-					Path:    os.ExpandEnv("$HOME/.local/state/kontext/state.json"),
+					File:    filepath.Join(xdg.StateHome, "kontext", "state.json"),
 					History: History{},
 				},
 				Groups:  []Group{},
@@ -151,7 +153,6 @@ func Test_Read(t *testing.T) {
 				diff := cmp.Diff(tt.want, got)
 				t.Errorf("reader.Read() mismatch (-want +got):\n%s", diff)
 			}
-
 		})
 	}
 }

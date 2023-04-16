@@ -27,7 +27,7 @@ type Client struct {
 
 func New() (*Client, error) {
 	configClient := &config.Client{
-		Path: config.DefaultConfigPath,
+		File: config.DefaultConfigPath,
 	}
 	config, err := configClient.Read()
 	if err != nil {

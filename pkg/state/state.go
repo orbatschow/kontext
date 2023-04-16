@@ -43,21 +43,21 @@ func Init(config *config.Config) error {
 	log := logger.New()
 
 	// return if the state file already exists
-	if _, err := os.Stat(config.State.Path); err == nil {
+	if _, err := os.Stat(config.State.File); err == nil {
 		return nil
 	}
 
-	log.Debug("missing state file, creating now", log.Args("path", config.State.Path))
+	log.Debug("missing state file, creating now", log.Args("path", config.State.File))
 
 	// create state directory
-	baseStateDirectory, _ := filepath.Split(config.State.Path)
+	baseStateDirectory, _ := filepath.Split(config.State.File)
 	err := os.MkdirAll(baseStateDirectory, 0755)
 	if err != nil {
 		return fmt.Errorf("could not create state directory, err: '%w'", err)
 	}
 
 	// create state file
-	_, err = os.Create(config.State.Path)
+	_, err = os.Create(config.State.File)
 	if err != nil {
 		return fmt.Errorf("could not create state file, err: '%w'", err)
 	}
@@ -73,15 +73,15 @@ func Read(config *config.Config) (*State, error) {
 	var state *State
 
 	// load the state file into koanf
-	if err := instance.Load(file.Provider(config.State.Path), yaml.Parser()); err != nil {
-		return nil, fmt.Errorf("failed to load config file, expected file at '%s'", config.State.Path)
+	if err := instance.Load(file.Provider(config.State.File), yaml.Parser()); err != nil {
+		return nil, fmt.Errorf("failed to load config file, expected file at '%s'", config.State.File)
 	}
 
 	// unmarshal the state file into struct
 	if err := instance.UnmarshalWithConf("", &state, koanf.UnmarshalConf{Tag: "json"}); err != nil {
 		return nil, fmt.Errorf("could not unmarshal state, err: '%w'", err)
 	}
-	log.Debug("read state file", log.Args("path", config.State.Path))
+	log.Debug("read state file", log.Args("path", config.State.File))
 
 	return state, nil
 }
@@ -99,7 +99,7 @@ func Write(config *config.Config, state *State) error {
 	log.Debug("updating state", log.Args("data", string(buffer)))
 
 	// write the state into the state file
-	err = os.WriteFile(config.State.Path, buffer, 0600)
+	err = os.WriteFile(config.State.File, buffer, 0600)
 	if err != nil {
 		return fmt.Errorf("could not write state to file, err: '%w'", err)
 	}

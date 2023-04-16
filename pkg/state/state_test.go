@@ -28,7 +28,7 @@ func Test_initialize(t *testing.T) {
 			args: args{
 				Config: &config.Config{
 					State: config.State{
-						Path: func() string {
+						File: func() string {
 							tempDir := os.TempDir()
 							seed := lo.RandomString(10, lo.LowerCaseLettersCharset)
 							targetDir := filepath.Join(tempDir, seed)
@@ -52,11 +52,11 @@ func Test_initialize(t *testing.T) {
 				t.Errorf("expected error, got: '%v'", err)
 			}
 
-			if _, err := os.Stat(tt.args.Config.State.Path); errors.Is(err, os.ErrNotExist) {
+			if _, err := os.Stat(tt.args.Config.State.File); errors.Is(err, os.ErrNotExist) {
 				t.Errorf("state file does not exist")
 			}
 
-			dir, _ := filepath.Split(tt.args.Config.State.Path)
+			dir, _ := filepath.Split(tt.args.Config.State.File)
 			err = os.RemoveAll(dir)
 			if !tt.wantErr && err != nil {
 				t.Errorf("could not remove state directory, err: '%v'", err)
@@ -80,7 +80,7 @@ func Test_Read(t *testing.T) {
 			args: args{
 				Config: &config.Config{
 					State: config.State{
-						Path: func() string {
+						File: func() string {
 							_, caller, _, _ := runtime.Caller(0)
 							stateFile := filepath.Join(caller, "..", "testdata", "01-valid-state.json")
 							return stateFile
@@ -111,7 +111,7 @@ func Test_Read(t *testing.T) {
 			args: args{
 				Config: &config.Config{
 					State: config.State{
-						Path: func() string {
+						File: func() string {
 							_, caller, _, _ := runtime.Caller(0)
 							stateFile := filepath.Join(caller, "..", "testdata", "02-valid-empty-state.json")
 							return stateFile
@@ -127,7 +127,7 @@ func Test_Read(t *testing.T) {
 			args: args{
 				Config: &config.Config{
 					State: config.State{
-						Path: func() string {
+						File: func() string {
 							_, caller, _, _ := runtime.Caller(0)
 							stateFile := filepath.Join(caller, "..", "testdata", "03-invalid-state.json")
 							return stateFile
@@ -174,7 +174,7 @@ func Test_Write(t *testing.T) {
 			args: args{
 				Config: &config.Config{
 					State: config.State{
-						Path: func() string {
+						File: func() string {
 							tempDir := os.TempDir()
 							seed := lo.RandomString(10, lo.LowerCaseLettersCharset)
 							targetDir := filepath.Join(tempDir, seed)
@@ -202,7 +202,7 @@ func Test_Write(t *testing.T) {
 			args: args{
 				Config: &config.Config{
 					State: config.State{
-						Path: func() string {
+						File: func() string {
 							tempDir := os.TempDir()
 							seed := lo.RandomString(10, lo.LowerCaseLettersCharset)
 							targetDir := filepath.Join(tempDir, seed)
@@ -244,7 +244,7 @@ func Test_Write(t *testing.T) {
 			}
 
 			// compare written file and want
-			got, err := os.ReadFile(tt.args.Config.State.Path)
+			got, err := os.ReadFile(tt.args.Config.State.File)
 			if err != nil {
 				t.Errorf("%v", err)
 			}
@@ -253,7 +253,7 @@ func Test_Write(t *testing.T) {
 			}
 
 			// cleanup
-			dir, _ := filepath.Split(tt.args.Config.State.Path)
+			dir, _ := filepath.Split(tt.args.Config.State.File)
 			err = os.RemoveAll(dir)
 			if !tt.wantErr && err != nil {
 				t.Errorf("could not remove state directory, err: '%v'", err)

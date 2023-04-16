@@ -6,7 +6,7 @@ backup:
   enabled: true
 
 state:
-  path: $HOME/.local/state/kontext/state.json
+  file: $HOME/.local/state/kontext/state.json
 
 groups:
   - name: default

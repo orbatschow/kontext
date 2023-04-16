@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/adrg/xdg"
 	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/kubeconfig"
 	"github.com/orbatschow/kontext/pkg/logger"
@@ -61,12 +60,8 @@ func create(config *config.Config) (*os.File, error) {
 		return nil, err
 	}
 
-	if len(config.Backup.Location) == 0 {
-		config.Backup.Location = filepath.Join(xdg.DataHome, "kontext", "backup")
-	}
-
-	if _, err := os.Stat(config.Backup.Location); os.IsNotExist(err) {
-		err = os.MkdirAll(config.Backup.Location, 0755)
+	if _, err := os.Stat(config.Backup.Directory); os.IsNotExist(err) {
+		err = os.MkdirAll(config.Backup.Directory, 0755)
 		if err != nil {
 			return nil, fmt.Errorf("could not create backup directory, err: '%w'", err)
 		}
@@ -134,6 +129,6 @@ func computeBackupFileName(config *config.Config) Filename {
 	// compute the backup file name
 	backupFileName := fmt.Sprintf("kubeconfig-%d.yaml", timestamp)
 	// compute the backup file path
-	backupFilePath := filepath.Join(config.Backup.Location, backupFileName)
+	backupFilePath := filepath.Join(config.Backup.Directory, backupFileName)
 	return Filename(backupFilePath)
 }
