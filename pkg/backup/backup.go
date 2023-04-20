@@ -17,6 +17,7 @@ const (
 )
 
 type Filename string
+type Directory string
 
 // Reconcile creates a new backup revision (if backups are enabled), updates the state and cleans up old revisions
 func Reconcile(config *config.Config, currentState *state.State) error {
@@ -60,6 +61,8 @@ func create(config *config.Config) (*os.File, error) {
 		return nil, err
 	}
 
+	backupFilename := computeBackupFileName(config)
+
 	if _, err := os.Stat(config.Backup.Directory); os.IsNotExist(err) {
 		err = os.MkdirAll(config.Backup.Directory, 0755)
 		if err != nil {
@@ -67,8 +70,7 @@ func create(config *config.Config) (*os.File, error) {
 		}
 	}
 
-	backupFileName := computeBackupFileName(config)
-	backupFile, err := os.Create(string(backupFileName))
+	backupFile, err := os.OpenFile(string(backupFilename), os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return nil, err
 	}

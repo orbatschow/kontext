@@ -10,10 +10,10 @@ import (
 	"k8s.io/client-go/tools/clientcmd/api"
 )
 
-func Read(reader io.Reader) (*api.Config, error) {
+func Read(file *os.File) (*api.Config, error) {
 	log := logger.New()
 
-	data, err := io.ReadAll(reader)
+	data, err := io.ReadAll(file)
 	if err != nil {
 		return nil, fmt.Errorf("could not read kubeconfig, err: '%w'", err)
 	}
@@ -27,7 +27,7 @@ func Read(reader io.Reader) (*api.Config, error) {
 	return buffer, nil
 }
 
-func Write(writer io.Writer, apiConfig *api.Config) error {
+func Write(file *os.File, apiConfig *api.Config) error {
 	log := logger.New()
 
 	if apiConfig == nil {
@@ -41,7 +41,12 @@ func Write(writer io.Writer, apiConfig *api.Config) error {
 		return fmt.Errorf("persist new kubeconfig, err: '%w'", err)
 	}
 
-	_, err = writer.Write(buffer)
+	_, err = file.Write(buffer)
+	if err != nil {
+		return err
+	}
+
+	_, err = file.Seek(0, io.SeekStart)
 	if err != nil {
 		return err
 	}

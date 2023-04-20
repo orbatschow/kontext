@@ -1,7 +1,6 @@
 package kubeconfig
 
 import (
-	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -13,7 +12,7 @@ import (
 
 func Test_Load(t *testing.T) {
 	type args struct {
-		reader io.Reader
+		file *os.File
 	}
 	tests := []struct {
 		name    string
@@ -24,7 +23,7 @@ func Test_Load(t *testing.T) {
 		{
 			name: "should parse the kubeconfig successfully",
 			args: args{
-				reader: func() io.Reader {
+				file: func() *os.File {
 					_, caller, _, _ := runtime.Caller(0)
 					kubeConfigFile := filepath.Join(caller, "..", "testdata", "01-valid-kubeconfig.yaml")
 					file, err := os.Open(kubeConfigFile)
@@ -40,9 +39,9 @@ func Test_Load(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "should throw an error, because the KontextConfig points to nil",
+			name: "should throw an error, because the config points to nil",
 			args: args{
-				reader: func() io.Reader {
+				file: func() *os.File {
 					file, _ := os.Open("")
 					return file
 				}(),
@@ -52,7 +51,7 @@ func Test_Load(t *testing.T) {
 		{
 			name: "should built an empty kubeconfig, despite the base file being invalid",
 			args: args{
-				reader: func() io.Reader {
+				file: func() *os.File {
 					_, caller, _, _ := runtime.Caller(0)
 					kubeConfigFile := filepath.Join(caller, "..", "testdata", "02-invalid-kubeconfig.yaml")
 					file, err := os.Open(kubeConfigFile)
@@ -70,7 +69,7 @@ func Test_Load(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := Read(tt.args.reader)
+			got, err := Read(tt.args.file)
 			if !tt.wantErr && err != nil {
 				t.Errorf("unexpected error, err: '%v'", err)
 			}
@@ -89,8 +88,8 @@ func Test_Load(t *testing.T) {
 
 func Test_Write(t *testing.T) {
 	type args struct {
-		APIConfig     *api.Config
-		KontextConfig func(file *os.File) *config.Config
+		apiConfig *api.Config
+		config    func(file *os.File) *config.Config
 	}
 	tests := []struct {
 		name    string
@@ -107,7 +106,7 @@ func Test_Write(t *testing.T) {
 				}
 			},
 			args: args{
-				KontextConfig: func(tmpFile *os.File) *config.Config {
+				config: func(tmpFile *os.File) *config.Config {
 					kontextConfig := &config.Config{
 						Global: config.Global{
 							Kubeconfig: tmpFile.Name(),
@@ -115,7 +114,7 @@ func Test_Write(t *testing.T) {
 					}
 					return kontextConfig
 				},
-				APIConfig: func() *api.Config {
+				apiConfig: func() *api.Config {
 					_, caller, _, _ := runtime.Caller(0)
 					kubeConfigFile := filepath.Join(caller, "..", "testdata", "01-valid-kubeconfig.yaml")
 					file, err := os.Open(kubeConfigFile)
@@ -134,7 +133,7 @@ func Test_Write(t *testing.T) {
 		{
 			name: "should throw an error due to missing config",
 			args: args{
-				KontextConfig: func(tmpFile *os.File) *config.Config {
+				config: func(tmpFile *os.File) *config.Config {
 					kontextConfig := &config.Config{
 						Global: config.Global{
 							Kubeconfig: "",
@@ -142,7 +141,7 @@ func Test_Write(t *testing.T) {
 					}
 					return kontextConfig
 				},
-				APIConfig: nil,
+				apiConfig: nil,
 			},
 			wantErr: true,
 		},
@@ -154,7 +153,7 @@ func Test_Write(t *testing.T) {
 				t.Errorf("%v", err)
 			}
 
-			err = Write(tmpFile, tt.args.APIConfig)
+			err = Write(tmpFile, tt.args.apiConfig)
 			if !tt.wantErr && err != nil {
 				t.Errorf("unexpected error, err: '%v'", err)
 			}

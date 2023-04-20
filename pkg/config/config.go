@@ -14,9 +14,7 @@ import (
 )
 
 var (
-	DefaultConfigPath      = filepath.Join(xdg.ConfigHome, "kontext", "kontext.yaml")
-	DefaultStatePath       = filepath.Join(xdg.StateHome, "kontext", "state.json")
-	DefaultBackupDirectory = filepath.Join(xdg.DataHome, "kontext", "backup")
+	DefaultConfigPath = filepath.Join(xdg.ConfigHome, "kontext", "kontext.yaml")
 )
 
 type Client struct {
@@ -82,10 +80,10 @@ func (r *Client) Read() (*Config, error) {
 		},
 		Backup: Backup{
 			Enabled:   true,
-			Directory: DefaultBackupDirectory,
+			Directory: filepath.Join(xdg.DataHome, "kontext", "backup"),
 		},
 		State: State{
-			File: DefaultStatePath,
+			File: filepath.Join(xdg.StateHome, "kontext", "state.json"),
 		},
 	}, "koanf"), nil)
 	if err != nil {
