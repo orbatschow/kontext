@@ -12,10 +12,6 @@ import (
 	"github.com/orbatschow/kontext/pkg/state"
 )
 
-const (
-	defaultRevisionLimit = 10
-)
-
 type Filename string
 type Directory string
 
@@ -34,10 +30,8 @@ func Reconcile(config *config.Config, currentState *state.State) error {
 		return err
 	}
 
-	// add the new backup revision to the current currentState
-	addRevision(currentState, backupFile)
-
-	err = computeRevisions(config, currentState)
+	// add the new backup revision and remove revisions, that exceed the limit
+	err = reconcileRevisions(config, currentState, backupFile)
 	if err != nil {
 		return err
 	}
@@ -81,47 +75,6 @@ func create(config *config.Config) (*os.File, error) {
 	}
 
 	return backupFile, nil
-}
-
-// addRevision adds a new backup revision to the current state
-func addRevision(currentState *state.State, backupFile *os.File) {
-	currentState.Backup.Revisions = append(currentState.Backup.Revisions, state.Revision(backupFile.Name()))
-}
-
-// computeRevisions will set a valid list of revisions within the
-// given state and return all revisions, that shall be removed
-func computeRevisions(config *config.Config, state *state.State) error {
-	log := logger.New()
-
-	var revisionLimit int
-	if config.Backup.Revisions == nil {
-		revisionLimit = defaultRevisionLimit
-	} else {
-		revisionLimit = *config.Backup.Revisions
-	}
-	if revisionLimit >= len(state.Backup.Revisions) {
-		return nil
-	}
-
-	outdatedRevisions := len(state.Backup.Revisions) - revisionLimit
-	if outdatedRevisions <= 0 {
-		return nil
-	}
-
-	for i := 0; i < outdatedRevisions; i++ {
-		file, err := os.Open(string(state.Backup.Revisions[i]))
-		if err != nil {
-			return err
-		}
-
-		log.Info("removing backup revision", log.Args("file", file.Name()))
-		err = os.Remove(file.Name())
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 // computeBackupFileName builds the file name for the new backup

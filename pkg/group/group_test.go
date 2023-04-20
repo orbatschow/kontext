@@ -106,6 +106,11 @@ func Test_Set(t *testing.T) {
 			args: args{
 				GroupName: "dev",
 				Config: &config.Config{
+					State: config.State{
+						History: config.History{
+							Size: state.DefaultMaximumHistorySize,
+						},
+					},
 					Groups: []config.Group{
 						{
 							Name: "dev",
@@ -161,6 +166,11 @@ func Test_Set(t *testing.T) {
 			args: args{
 				GroupName: "dev",
 				Config: &config.Config{
+					State: config.State{
+						History: config.History{
+							Size: state.DefaultMaximumHistorySize,
+						},
+					},
 					Groups: []config.Group{
 						{
 							Name:    "dev",
@@ -309,6 +319,11 @@ func Test_Reload(t *testing.T) {
 			args: args{
 				GroupName: "dev",
 				Config: &config.Config{
+					State: config.State{
+						History: config.History{
+							Size: state.DefaultMaximumHistorySize,
+						},
+					},
 					Groups: []config.Group{
 						{
 							Name: "dev",

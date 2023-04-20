@@ -276,8 +276,14 @@ func Test_ComputeHistory(t *testing.T) {
 		{
 			name: "should add a new entry to the history successfully",
 			args: args{
-				Config: &config.Config{},
-				Entry:  "local",
+				Config: &config.Config{
+					State: config.State{
+						History: config.History{
+							Size: DefaultMaximumHistorySize,
+						},
+					},
+				},
+				Entry: "local",
 				History: []History{
 					"dev",
 					"prod",
@@ -292,8 +298,14 @@ func Test_ComputeHistory(t *testing.T) {
 		{
 			name: "should skip adding a duplicate entry history",
 			args: args{
-				Config: &config.Config{},
-				Entry:  "dev",
+				Config: &config.Config{
+					State: config.State{
+						History: config.History{
+							Size: DefaultMaximumHistorySize,
+						},
+					},
+				},
+				Entry: "dev",
 				History: []History{
 					"dev",
 				},
@@ -305,7 +317,13 @@ func Test_ComputeHistory(t *testing.T) {
 		{
 			name: "should add an entry to an empty history",
 			args: args{
-				Config:  &config.Config{},
+				Config: &config.Config{
+					State: config.State{
+						History: config.History{
+							Size: DefaultMaximumHistorySize,
+						},
+					},
+				},
 				Entry:   "dev",
 				History: []History{},
 			},
@@ -317,7 +335,11 @@ func Test_ComputeHistory(t *testing.T) {
 			name: "should not exceed the default maximum history size",
 			args: args{
 				Config: &config.Config{
-					State: config.State{},
+					State: config.State{
+						History: config.History{
+							Size: DefaultMaximumHistorySize,
+						},
+					},
 				},
 				Entry: "private",
 				History: []History{

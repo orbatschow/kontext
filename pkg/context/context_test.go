@@ -137,7 +137,13 @@ func Test_Set(t *testing.T) {
 			name: "should change the api config and state to the given context",
 			args: args{
 				ContextName: "kind",
-				Config:      &config.Config{},
+				Config: &config.Config{
+					State: config.State{
+						History: config.History{
+							Size: state.DefaultMaximumHistorySize,
+						},
+					},
+				},
 				APIConfig: &api.Config{
 					CurrentContext: "local",
 					Contexts: map[string]*api.Context{
@@ -177,7 +183,13 @@ func Test_Set(t *testing.T) {
 			name: "should change the api config, state and history to the given context",
 			args: args{
 				ContextName: "kind",
-				Config:      &config.Config{},
+				Config: &config.Config{
+					State: config.State{
+						History: config.History{
+							Size: state.DefaultMaximumHistorySize,
+						},
+					},
+				},
 				APIConfig: &api.Config{
 					CurrentContext: "local",
 					Contexts: map[string]*api.Context{

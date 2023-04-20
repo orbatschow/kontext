@@ -5,7 +5,7 @@ global:
   # will be replaced each time a group/context is set
   # see .backup for backup/restore options
   kubeconfig: "$HOME/.config/kontext/kubeconfig.yaml"
-  # log level, possible values are:
+  # verbosity, possible values are:
   # - 1 -> Trace
   # - 2 -> Debug
   # - 3 -> Info
@@ -13,7 +13,7 @@ global:
   # - 5 -> Error
   # - 6 -> Fatal
   # - 7 -> Print
-  verbosity: 0
+  verbosity: 3
 
 # state configuration options
 state:

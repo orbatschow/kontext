@@ -112,13 +112,12 @@ func Write(config *config.Config, state *State) error {
 // If the history size is larger than the configured or default size, it will remove
 // the oldest entry from the history
 func ComputeHistory(config *config.Config, entry History, history []History) []History {
-	var maxHistorySize int
 	// if latest entry in history is already equal to the new entry, just return the history
 	if len(history) > 0 && history[len(history)-1] == entry {
 		return history
 	}
 	history = append(history, entry)
-	if len(history) > maxHistorySize {
+	if len(history) > config.State.History.Size {
 		_, history = history[0], history[1:]
 	}
 
