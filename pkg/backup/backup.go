@@ -37,7 +37,7 @@ func Reconcile(config *config.Config, currentState *state.State) error {
 	// add the new backup revision to the current currentState
 	addRevision(currentState, backupFile)
 
-	err = enforceRevisionLimit(config, currentState)
+	err = computeRevisions(config, currentState)
 	if err != nil {
 		return err
 	}
@@ -88,9 +88,9 @@ func addRevision(currentState *state.State, backupFile *os.File) {
 	currentState.Backup.Revisions = append(currentState.Backup.Revisions, state.Revision(backupFile.Name()))
 }
 
-// enforceRevisionLimit will check if the given revision limit is reached and
-// remove old backup revisions if necessary
-func enforceRevisionLimit(config *config.Config, state *state.State) error {
+// computeRevisions will set a valid list of revisions within the
+// given state and return all revisions, that shall be removed
+func computeRevisions(config *config.Config, state *state.State) error {
 	log := logger.New()
 
 	var revisionLimit int

@@ -121,11 +121,14 @@ func Test_Read(t *testing.T) {
 				},
 				Backup: Backup{
 					Enabled:   true,
+					Revisions: DefaultBackupRevisionLimit,
 					Directory: filepath.Join(xdg.DataHome, "kontext", "backup"),
 				},
 				State: State{
-					File:    filepath.Join(xdg.StateHome, "kontext", "state.json"),
-					History: History{},
+					File: filepath.Join(xdg.StateHome, "kontext", "state.json"),
+					History: History{
+						Size: DefaultStateHistoryLimit,
+					},
 				},
 				Groups:  []Group{},
 				Sources: []Source{},

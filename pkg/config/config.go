@@ -17,6 +17,11 @@ var (
 	DefaultConfigPath = filepath.Join(xdg.ConfigHome, "kontext", "kontext.yaml")
 )
 
+const (
+	DefaultStateHistoryLimit   = 10
+	DefaultBackupRevisionLimit = 10
+)
+
 type Client struct {
 	// File of the file, that will be used to read the configuration
 	File string
@@ -37,11 +42,11 @@ type Group struct {
 type Backup struct {
 	Enabled   bool   `json:"enabled"`
 	Directory string `json:"directory,omitempty"`
-	Revisions *int   `json:"revisions,omitempty"`
+	Revisions int    `json:"revisions,omitempty"`
 }
 
 type History struct {
-	Size *int `json:"size"`
+	Size int `json:"size"`
 }
 
 type State struct {
@@ -81,8 +86,12 @@ func (r *Client) Read() (*Config, error) {
 		Backup: Backup{
 			Enabled:   true,
 			Directory: filepath.Join(xdg.DataHome, "kontext", "backup"),
+			Revisions: DefaultBackupRevisionLimit,
 		},
 		State: State{
+			History: History{
+				Size: DefaultStateHistoryLimit,
+			},
 			File: filepath.Join(xdg.StateHome, "kontext", "state.json"),
 		},
 	}, "koanf"), nil)

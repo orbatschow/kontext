@@ -352,7 +352,7 @@ func Test_ComputeHistory(t *testing.T) {
 				Config: &config.Config{
 					State: config.State{
 						History: config.History{
-							Size: lo.ToPtr(3),
+							Size: 3,
 						},
 					},
 				},

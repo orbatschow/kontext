@@ -113,13 +113,6 @@ func Write(config *config.Config, state *State) error {
 // the oldest entry from the history
 func ComputeHistory(config *config.Config, entry History, history []History) []History {
 	var maxHistorySize int
-
-	if config.State.History.Size == nil {
-		maxHistorySize = DefaultMaximumHistorySize
-	} else {
-		maxHistorySize = *config.State.History.Size
-	}
-
 	// if latest entry in history is already equal to the new entry, just return the history
 	if len(history) > 0 && history[len(history)-1] == entry {
 		return history

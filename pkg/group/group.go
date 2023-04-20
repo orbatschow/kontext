@@ -17,7 +17,10 @@ import (
 	"k8s.io/client-go/tools/clientcmd/api"
 )
 
-const MaxSelectHeight = 500
+const (
+	MaxSelectHeight    = 500
+	PreviousGroupAlias = "-"
+)
 
 type Client struct {
 	Config    *config.Config
@@ -70,7 +73,7 @@ func (c *Client) Set(groupName string) error {
 	log := logger.New()
 	history := c.State.Group.History
 
-	if len(history) > 1 && groupName == "-" {
+	if len(history) > 1 && groupName == PreviousGroupAlias {
 		groupName = string(history[len(history)-2])
 	}
 

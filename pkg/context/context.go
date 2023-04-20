@@ -82,7 +82,7 @@ func (c *Client) Set(contextName string) error {
 	log := logger.New()
 	history := c.State.Context.History
 
-	if len(history) > 1 && contextName == "-" {
+	if len(history) > 1 && contextName == PreviousContextAlias {
 		contextName = string(history[len(history)-2])
 	}
 
