@@ -6,14 +6,16 @@ import (
 	"github.com/orbatschow/kontext/pkg/cmd/get"
 	"github.com/orbatschow/kontext/pkg/cmd/reload"
 	"github.com/orbatschow/kontext/pkg/cmd/set"
+	"github.com/orbatschow/kontext/pkg/version"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "kontext",
-	Short: "manage kubernetes config files, contexts, groups and sources",
-	Run:   set.NewSetContextCommand,
+	Use:     "kontext",
+	Version: version.Compute(),
+	Short:   "manage kubernetes config files, contexts, groups and sources",
+	Run:     set.NewSetContextCommand,
 }
 
 func Execute() {
