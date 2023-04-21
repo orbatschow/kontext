@@ -27,7 +27,7 @@ backup:
   # enable the backup, defaults to true
   enabled: true
   # override the default backup directory
-  path: $HOME/.local/share/kontext
+  directory: $HOME/.local/share/kontext/backup
   # override the maximum number of kubeconfig files, that shall be kept by kontext
   revisions: 10
 
