@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/adrg/xdg v0.4.0
 	github.com/bmatcuk/doublestar/v4 v4.6.0
+	github.com/google/go-cmp v0.5.9
 	github.com/knadh/koanf v1.5.0
 	github.com/pterm/pterm v0.12.58
 	github.com/samber/lo v1.38.1
@@ -17,6 +18,7 @@ require (
 	atomicgo.dev/keyboard v0.2.9 // indirect
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect

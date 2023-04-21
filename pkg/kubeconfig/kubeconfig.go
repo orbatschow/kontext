@@ -3,18 +3,17 @@ package kubeconfig
 import (
 	"fmt"
 	"io"
-	"strconv"
+	"os"
 
-	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/logger"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
 )
 
-func Load(reader io.Reader) (*api.Config, error) {
+func Read(file *os.File) (*api.Config, error) {
 	log := logger.New()
 
-	data, err := io.ReadAll(reader)
+	data, err := io.ReadAll(file)
 	if err != nil {
 		return nil, fmt.Errorf("could not read kubeconfig, err: '%w'", err)
 	}
@@ -23,42 +22,56 @@ func Load(reader io.Reader) (*api.Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not unmarshal kubeconfig, err: '%w'", err)
 	}
-	log.Info("read kubeconfig")
+	log.Debug("read kubeconfig")
 
 	return buffer, nil
 }
 
-func Write(kontextConfig *config.Config, apiConfig *api.Config) error {
+func Write(file *os.File, apiConfig *api.Config) error {
 	log := logger.New()
 
-	err := clientcmd.WriteToFile(*apiConfig, kontextConfig.Global.Kubeconfig)
+	if apiConfig == nil {
+		return fmt.Errorf("invalid api config")
+	}
+
+	var buffer []byte
+
+	buffer, err := clientcmd.Write(*apiConfig)
 	if err != nil {
 		return fmt.Errorf("persist new kubeconfig, err: '%w'", err)
 	}
-	log.Info("wrote new kubeconfig", log.Args("path", kontextConfig.Global.Kubeconfig))
+
+	_, err = file.Write(buffer)
+	if err != nil {
+		return err
+	}
+
+	_, err = file.Seek(0, io.SeekStart)
+	if err != nil {
+		return err
+	}
+
+	log.Debug("wrote kubeconfig")
 	return nil
 }
 
-func Merge(files ...string) (*api.Config, error) {
-	log := logger.New()
-	loadingRules := clientcmd.ClientConfigLoadingRules{
-		Precedence: files,
+func Merge(files ...*os.File) (*api.Config, error) {
+	var buffer []string
+	// log := logger.New()
+
+	for _, file := range files {
+		buffer = append(buffer, file.Name())
 	}
 
-	buffer, err := loadingRules.Load()
+	loadingRules := clientcmd.ClientConfigLoadingRules{
+		Precedence: buffer,
+	}
+
+	matches, err := loadingRules.Load()
 	if err != nil {
 		return nil, fmt.Errorf("could not merge kubeconfig files, err: '%w'", err)
 	}
-	log.Info("merged kubeconfig", log.ArgsFromMap(buildFileMap(files)))
-	return buffer, nil
-}
-
-func buildFileMap(files []string) map[string]any {
-	buffer := map[string]any{}
-
-	for index, file := range files {
-		buffer[strconv.Itoa(index)] = file
-	}
-
-	return buffer
+	// TODO: replace with print function, that prints a table
+	// log.Info("merged kubeconfig", log.ArgsFromMap(buildFileMap(files)))
+	return matches, nil
 }

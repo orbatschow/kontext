@@ -1,27 +1,63 @@
 # global configuration options
 global:
 
+  # target kubeconfig file for kontext, all sources will be merged into this file
+  # will be replaced each time a group/context is set
+  # see .backup for backup/restore options
+  kubeconfig: "$HOME/.config/kontext/kubeconfig.yaml"
+  # verbosity, possible values are:
+  # - 1 -> Trace
+  # - 2 -> Debug
+  # - 3 -> Info
+  # - 4 -> Warn
+  # - 5 -> Error
+  # - 6 -> Fatal
+  # - 7 -> Print
+  verbosity: 3
+
+# state configuration options
+state:
+  # override the default state file path
+  path: $HOME/.local/state/kontext/state.json
+
+# backup configuration settings
+# backup targets:
+# - .global.kubeconfig
+backup:
+  # enable the backup, defaults to true
+  enabled: true
+  # override the default backup directory
+  path: $HOME/.local/share/kontext
+  # override the maximum number of kubeconfig files, that shall be kept by kontext
+  revisions: 10
+
 # groups define a set of sources to include
 groups:
   # a group named "default"
-  default:
+  - name: default
+    # set a default context, that will be activated as soon as you switch to this group
+    # note: the context has to be available within this group
+    context: kind-kind
     # all sources referred by this group
     sources:
       - primary
 
   # another group called dev, that refers to the sources of multiple customers
-  dev:
+  - name: dev
+    # set a default context, that will be activated as soon as you switch to this group
+    # note: the context has to be available within this group
+    context: dev-01
     sources:
       - customer-a.dev
       - customer-b.dev
 
   # another group called prod, that refers to a source called prod
-  prod:
+  - name: prod
     sources:
       - prod
 
   # another group called testing, that refers to multiple sources
-  testing:
+  - name: testing
     sources:
       - local
       - private
@@ -29,41 +65,41 @@ groups:
 # define all sources, that are used by groups
 sources:
   # a source called primary, that defines one include and one exclude glob
-  primary:
+  - name: primary
     include:
-      - /home/orbatschow/.config/kubernetes/**/*.yaml
+      - $HOME/.config/kontext/**/*.yaml
     exclude:
-      - /home/orbatschow/.config/kubernetes/**/*prod*.yaml
+      - $HOME/.config/kontext/**/*prod*.yaml
 
   # a source called customer-a.dev, that defines one include and one exclude glob
-  customer-a.dev:
+  - name: customer-a.dev
     include:
-      - /home/orbatschow/.config/kubernetes/dev/customer-a/**/*.yaml
+      - $HOME/.config/kontext/dev/customer-a/**/*.yaml
     exclude:
-      - /home/orbatschow/.config/kubernetes/dev/**/*skip*.yaml
+      - $HOME/.config/kontext/dev/**/*skip*.yaml
 
   # a source called customer-b.dev, that defines one include and one exclude glob
-  customer-b.dev:
+  - name: customer-b.dev
     include:
-      - /home/orbatschow/.config/kubernetes/dev/customer-b/**/*.yaml
+      - $HOME/.config/kontext/dev/customer-b/**/*.yaml
     exclude:
-      - /home/orbatschow/.config/kubernetes/dev/**/*skip*.yaml
+      - $HOME/.config/kontext/dev/**/*skip*.yaml
 
   # a source called prod, that defines one include and one exclude glob
-  prod:
+  - name: prod
     include:
-      - /home/orbatschow/.config/kubernetes/prod/**/*.yaml
+      - $HOME/.config/kontext/prod/**/*.yaml
     exclude:
-      - /home/orbatschow/.config/kubernetes/prod/**/*skip*.yaml
+      - $HOME/.config/kontext/prod/**/*skip*.yaml
 
   # a source called local, that defines three include and no exclude globs
-  local:
+  - name: local
     include:
-      - /home/orbatschow/.config/kubernetes/orbatschow/**/*.yaml
-      - /home/orbatschow/.config/kubernetes/local/**/*.yaml
-      - /home/orbatschow/.config/kubernetes/kind/**/*.yaml
+      - $HOME/.config/kontext/orbatschow/**/*.yaml
+      - $HOME/.config/kontext/local/**/*.yaml
+      - $HOME/.config/kontext/kind/**/*.yaml
 
   # a source called local, that defines one include and no exclude glob
-  private:
+  - name: private
     include:
-      - /home/orbatschow/.config/kubernetes/private/**/*.yaml
+      - $HOME/.config/kontext/private/**/*.yaml

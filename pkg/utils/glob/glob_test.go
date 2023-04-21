@@ -1,4 +1,4 @@
-package source
+package glob
 
 import (
 	"os"
@@ -7,13 +7,12 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/samber/lo"
 )
 
-func Test_ComputeFiles(t *testing.T) {
+func Test_Expand(t *testing.T) {
 	type args struct {
-		Source *config.Source
+		Glob Pattern
 	}
 	tests := []struct {
 		name    string
@@ -22,25 +21,12 @@ func Test_ComputeFiles(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "should build the absolute paths for the glob successfully, without duplicates",
+			name: "should build the absolute paths for the glob successfully",
 			args: args{
-				Source: func() *config.Source {
+				Glob: func() Pattern {
 					_, caller, _, _ := runtime.Caller(0)
-					include := filepath.Join(caller, "..", "testdata", "*merge*.yaml")
-					exclude := filepath.Join(caller, "..", "testdata", "*merge-invalid.yaml")
-
-					return &config.Source{
-						Include: []string{
-							// duplication
-							include,
-							include,
-						},
-						Exclude: []string{
-							// duplication
-							exclude,
-							exclude,
-						},
-					}
+					glob := filepath.Join(caller, "..", "testdata", "*merge*.yaml")
+					return Pattern(glob)
 				}(),
 			},
 			want: func() []*os.File {
@@ -73,10 +59,18 @@ func Test_ComputeFiles(t *testing.T) {
 			}(),
 			wantErr: false,
 		},
+		{
+			name: "should not fail on non existing paths",
+			args: args{
+				Glob: "",
+			},
+			want:    nil,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ComputeFiles(tt.args.Source)
+			got, err := Expand(tt.args.Glob)
 			if !tt.wantErr && err != nil {
 				t.Errorf("unexpected error, err: '%v'", err)
 			}
@@ -94,7 +88,7 @@ func Test_ComputeFiles(t *testing.T) {
 
 			if !tt.wantErr && !cmp.Equal(wantNames, gotNames) {
 				diff := cmp.Diff(wantNames, gotNames)
-				t.Errorf("source.ComputeFiles() mismatch (-want +got):\n%s", diff)
+				t.Errorf("glob.Expand() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

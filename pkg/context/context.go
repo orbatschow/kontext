@@ -7,90 +7,113 @@ import (
 	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/kubeconfig"
 	"github.com/orbatschow/kontext/pkg/logger"
+	"github.com/orbatschow/kontext/pkg/state"
 	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 	"k8s.io/client-go/tools/clientcmd/api"
 )
 
-type JSONContext struct {
-	Name     string `json:"name,omitempty"`
-	Cluster  string `json:"cluster,omitempty"`
-	AuthInfo string `json:"authInfo,omitempty"`
+type Client struct {
+	Config    *config.Config
+	State     *state.State
+	APIConfig *api.Config
 }
 
-const MaxSelectHeight = 500
+const (
+	MaxSelectHeight      = 500
+	PreviousContextAlias = "-"
+)
 
-func Get(cmd *cobra.Command, kontextConfig *config.Config, name string) error {
-	buffer := make(map[string]*api.Context)
-
-	file, err := os.Open(kontextConfig.Global.Kubeconfig)
+func New() (*Client, error) {
+	configClient := &config.Client{
+		File: config.DefaultConfigPath,
+	}
+	config, err := configClient.Read()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	apiConfig, err := kubeconfig.Load(file)
+	file, err := os.Open(config.Global.Kubeconfig)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if len(name) > 0 {
-		ctx, ok := apiConfig.Contexts[name]
-		if !ok {
-			return fmt.Errorf("could not find context '%s'", name)
-		}
-		buffer[name] = ctx
-	} else {
-		buffer = apiConfig.Contexts
+	state, err := state.Read(config)
+	if err != nil {
+		return nil, err
 	}
 
-	err = Print(cmd, buffer, apiConfig)
+	apiConfig, err := kubeconfig.Read(file)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+
+	return &Client{
+		Config:    config,
+		State:     state,
+		APIConfig: apiConfig,
+	}, nil
 }
 
-func Set(_ *cobra.Command, kontextConfig *config.Config, contextName string) error {
+func (c *Client) Get(contextName string) (map[string]*api.Context, error) {
 	log := logger.New()
+	log.Info("getting context", log.Args("name", contextName))
 
-	file, err := os.Open(kontextConfig.Global.Kubeconfig)
-	if err != nil {
-		return err
+	if len(contextName) == 0 {
+		return nil, fmt.Errorf("given context name is empty")
 	}
-	apiConfig, err := kubeconfig.Load(file)
-	if err != nil {
-		return err
+
+	buffer, ok := c.APIConfig.Contexts[contextName]
+	if !ok {
+		return nil, fmt.Errorf("could not find context '%s'", contextName)
+	}
+
+	return map[string]*api.Context{
+		contextName: buffer,
+	}, nil
+}
+
+func (c *Client) List() map[string]*api.Context {
+	log := logger.New()
+	log.Info("listing contexts")
+
+	return c.APIConfig.Contexts
+}
+
+func (c *Client) Set(contextName string) error {
+	log := logger.New()
+	history := c.State.Context.History
+
+	if len(history) > 1 && contextName == PreviousContextAlias {
+		contextName = string(history[len(history)-2])
 	}
 
 	if len(contextName) == 0 {
 		var keys []string
-		for k := range apiConfig.Contexts {
+		for k := range c.APIConfig.Contexts {
 			keys = append(keys, k)
 		}
 		contextName, _ = pterm.DefaultInteractiveSelect.WithMaxHeight(MaxSelectHeight).WithOptions(keys).Show()
 	}
 
-	_, ok := apiConfig.Contexts[contextName]
+	_, ok := c.APIConfig.Contexts[contextName]
 	if !ok {
 		return fmt.Errorf("could not find context: '%s'", contextName)
 	}
 
-	apiConfig.CurrentContext = contextName
-	err = kubeconfig.Write(kontextConfig, apiConfig)
-	if err != nil {
-		return err
-	}
+	c.APIConfig.CurrentContext = contextName
+	c.State.Context.Active = contextName
+	c.State.Context.History = state.ComputeHistory(c.Config, state.History(contextName), history)
 
 	log.Info("switched context", log.Args("context", contextName))
 	return nil
 }
 
-func Print(_ *cobra.Command, contextList map[string]*api.Context, apiConfig *api.Config) error {
+func (c *Client) Print(contexts map[string]*api.Context) error {
 	table := pterm.TableData{
 		{"Active", "Name", "Cluster", "AuthInfo"},
 	}
-	for key, value := range contextList {
+	for key, value := range contexts {
 		active := ""
-		if key == apiConfig.CurrentContext {
+		if key == c.State.Context.Active {
 			active = "*"
 		}
 		table = append(table, []string{
