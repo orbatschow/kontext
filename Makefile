@@ -24,7 +24,7 @@ TPARSE_VERSION ?= latest
 .PHONY: clean
 clean:
 	rm -rf build
-	rm -rf $(LOCALBIN)
+	rm -rf pkg/version/data/*.txt
 
 .PHONY: localbin
 localbin:
@@ -52,7 +52,7 @@ download: ## downloads the dependencies
 	go mod download -x
 
 .PHONY: build
-build: ## build kontext binary.
+build: generate ## build kontext binary.
 	go build -o build/kontext cmd/main.go
 
 .PHONY: run
@@ -64,7 +64,7 @@ run: ## run kontext
 # lint
 ######################################################
 .PHONY: lint
-lint: golangci-lint ## lint all code with golangci-lint
+lint: generate golangci-lint  ## lint all code with golangci-lint
 	$(GOLANGCI_LINT)-$(GOLANGCI_LINT_VERSION) run ./... --timeout 15m0s -v
 
 
@@ -72,8 +72,14 @@ lint: golangci-lint ## lint all code with golangci-lint
 # test
 ######################################################
 .PHONY: test
-test: tparse
+test: generate tparse
 	set -eu
 	set -o pipefail
 	go test ./... -cover -json | $(TPARSE)-$(TPARSE_VERSION) -all
 
+######################################################
+# generate
+######################################################
+.PHONY: generate
+generate: clean
+	go generate github.com/orbatschow/kontext/pkg/version
