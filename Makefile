@@ -25,6 +25,7 @@ TPARSE_VERSION ?= latest
 clean:
 	rm -rf build
 	rm -rf $(LOCALBIN)
+	rm -rf pkg/version/data/*.txt
 
 .PHONY: localbin
 localbin:
@@ -52,7 +53,7 @@ download: ## downloads the dependencies
 	go mod download -x
 
 .PHONY: build
-build: ## build kontext binary.
+build: generate ## build kontext binary.
 	go build -o build/kontext cmd/main.go
 
 .PHONY: run
@@ -77,3 +78,9 @@ test: tparse
 	set -o pipefail
 	go test ./... -cover -json | $(TPARSE)-$(TPARSE_VERSION) -all
 
+######################################################
+# generate
+######################################################
+.PHONY: generate
+generate: clean
+	go generate github.com/orbatschow/kontext/pkg/version
