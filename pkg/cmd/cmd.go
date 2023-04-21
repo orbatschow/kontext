@@ -17,7 +17,7 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		isVersionFlagSet := cmd.Flags().Lookup("version").Changed
 		if isVersionFlagSet {
-			println(version.Compute())
+			pterm.Printfln(version.Compute())
 			os.Exit(0)
 		}
 
