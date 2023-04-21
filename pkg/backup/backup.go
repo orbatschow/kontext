@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/orbatschow/kontext/pkg/backup/revision"
 	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/kubeconfig"
 	"github.com/orbatschow/kontext/pkg/logger"
@@ -15,28 +16,39 @@ import (
 type Filename string
 type Directory string
 
+type Reconciler struct {
+	Config *config.Config
+	State  *state.State
+}
+
 // Reconcile creates a new backup revision (if backups are enabled), updates the state and cleans up old revisions
-func Reconcile(config *config.Config, currentState *state.State) error {
+func (r *Reconciler) Reconcile() error {
 	log := logger.New()
 
-	if !config.Backup.Enabled {
+	if !r.Config.Backup.Enabled {
 		log.Warn("skipping backup, it is disabled")
 		return nil
 	}
 
 	// create a new backup
-	backupFile, err := create(config)
+	backupFile, err := r.create()
 	if err != nil {
 		return err
 	}
 
 	// add the new backup revision and remove revisions, that exceed the limit
-	err = reconcileRevisions(config, currentState, backupFile)
+	revisionReconciler := revision.Reconciler{
+		Config: r.Config,
+		State:  r.State,
+		Backup: backupFile,
+	}
+	revisions, err := revisionReconciler.Reconcile()
 	if err != nil {
 		return err
 	}
+	r.State.Backup.Revisions = revisions
 
-	err = state.Write(config, currentState)
+	err = state.Write(r.Config, r.State)
 	if err != nil {
 		return err
 	}
@@ -45,8 +57,8 @@ func Reconcile(config *config.Config, currentState *state.State) error {
 }
 
 // create creates a new backup revision
-func create(config *config.Config) (*os.File, error) {
-	file, err := os.Open(config.Global.Kubeconfig)
+func (r *Reconciler) create() (*os.File, error) {
+	file, err := os.Open(r.Config.Global.Kubeconfig)
 	if err != nil {
 		return nil, err
 	}
@@ -55,10 +67,10 @@ func create(config *config.Config) (*os.File, error) {
 		return nil, err
 	}
 
-	backupFilename := computeBackupFileName(config)
+	backupFilename := computeBackupFileName(r.Config)
 
-	if _, err := os.Stat(config.Backup.Directory); os.IsNotExist(err) {
-		err = os.MkdirAll(config.Backup.Directory, 0755)
+	if _, err := os.Stat(r.Config.Backup.Directory); os.IsNotExist(err) {
+		err = os.MkdirAll(r.Config.Backup.Directory, 0755)
 		if err != nil {
 			return nil, fmt.Errorf("could not create backup directory, err: '%w'", err)
 		}

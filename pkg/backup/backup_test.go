@@ -16,72 +16,65 @@ import (
 
 func Test_Reconcile(t *testing.T) {
 	type args struct {
-		config *config.Config
+		config func(directory string) *config.Config
 		state  *state.State
 	}
 	tests := []struct {
 		name    string
-		after   func(*config.Config)
+		before  func() (string, error)
+		after   func(directory string) error
 		args    args
-		want    func(*config.Config) *state.State
+		want    func(directory string) *state.State
 		wantErr bool
 	}{
 		{
 			name: "should create a backup and add a new revision to the state",
-			after: func(config *config.Config) {
-				directory := filepath.Dir(config.State.File)
-				err := os.RemoveAll(directory)
+			before: func() (string, error) {
+				// create temporary working directory
+				directory, err := os.MkdirTemp("", "kontext-")
+				if err != nil {
+					return "", err
+				}
+				// create backup directory
+				err = os.Mkdir(filepath.Join(directory, "backup"), 0777)
+				if err != nil {
+					return "", err
+				}
+				// create state file
+				stateFilePath := filepath.Join(directory, "state.json")
+				_, err = os.Create(stateFilePath)
 				if err != nil {
 					t.Errorf("%v", err)
 				}
+
+				return directory, nil
+			},
+			after: func(directory string) error {
+				err := os.RemoveAll(directory)
+				if err != nil {
+					return err
+				}
+				return nil
 			},
 			args: args{
-				config: func() *config.Config {
-					// temporary directory
-					tempDirectory, err := os.MkdirTemp("", "kontext-")
-					if err != nil {
-						t.Errorf("%v", err)
-					}
-
+				config: func(directory string) *config.Config {
 					// current working directory
 					_, caller, _, _ := runtime.Caller(0)
 
-					// backup directory, based on temporary directory
-					tempBackupDir := filepath.Join(tempDirectory, "backup")
-					err = os.MkdirAll(filepath.Join(tempDirectory, "backup"), 0755)
-					if err != nil {
-						t.Errorf("%v", err)
-					}
-
-					// config, that shall be backed up
-					kubeconfigFilepath := filepath.Join(caller, "..", "testdata", "01-valid-kubeconfig.yaml")
-
-					// temporary state file
-					stateFilePath := filepath.Join(tempDirectory, "state.json")
-					_, err = os.Create(stateFilePath)
-					if err != nil {
-						t.Errorf("%v", err)
-					}
-
 					kontextConfig := &config.Config{
 						Global: config.Global{
-							Kubeconfig: kubeconfigFilepath,
+							Kubeconfig: filepath.Join(caller, "..", "testdata", "01-valid-kubeconfig.yaml"),
 						},
 						State: config.State{
-							File: stateFilePath,
+							File: filepath.Join(directory, "state.json"),
 						},
-						Backup: func() config.Backup {
-							if err != nil {
-								t.Errorf("%v", err)
-							}
-							return config.Backup{
-								Enabled:   true,
-								Directory: tempBackupDir,
-							}
-						}(),
+						Backup: config.Backup{
+							Enabled:   true,
+							Directory: filepath.Join(directory, "backup"),
+						},
 					}
 					return kontextConfig
-				}(),
+				},
 				state: &state.State{
 					Group:   state.Group{},
 					Context: state.Context{},
@@ -90,8 +83,8 @@ func Test_Reconcile(t *testing.T) {
 					},
 				},
 			},
-			want: func(config *config.Config) *state.State {
-				files, err := os.ReadDir(config.Backup.Directory)
+			want: func(tempDirectory string) *state.State {
+				files, err := os.ReadDir(filepath.Join(tempDirectory, "backup"))
 				if err != nil {
 					t.Errorf("%v", err)
 				}
@@ -101,7 +94,7 @@ func Test_Reconcile(t *testing.T) {
 					Context: state.Context{},
 					Backup: state.Backup{
 						Revisions: lo.Map(files, func(item os.DirEntry, index int) state.Revision {
-							return state.Revision(filepath.Join(config.Backup.Directory, item.Name()))
+							return state.Revision(filepath.Join(filepath.Join(tempDirectory, "backup"), item.Name()))
 						}),
 					},
 				}
@@ -110,11 +103,19 @@ func Test_Reconcile(t *testing.T) {
 		},
 		{
 			name: "should skip the backup, as it is disabled",
+			before: func() (string, error) {
+				return "", nil
+			},
+			after: func(directory string) error {
+				return nil
+			},
 			args: args{
-				config: &config.Config{
-					Backup: config.Backup{
-						Enabled: false,
-					},
+				config: func(directory string) *config.Config {
+					return &config.Config{
+						Backup: config.Backup{
+							Enabled: false,
+						},
+					}
 				},
 				state: &state.State{
 					Backup: state.Backup{
@@ -122,7 +123,7 @@ func Test_Reconcile(t *testing.T) {
 					},
 				},
 			},
-			want: func(config *config.Config) *state.State {
+			want: func(tempDirectory string) *state.State {
 				return &state.State{
 					Group:   state.Group{},
 					Context: state.Context{},
@@ -136,7 +137,16 @@ func Test_Reconcile(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := Reconcile(tt.args.config, tt.args.state)
+			tempDirectory, err := tt.before()
+			if err != nil {
+				t.Errorf("unexpected error, err: '%v'", err)
+			}
+
+			reconciler := Reconciler{
+				Config: tt.args.config(tempDirectory),
+				State:  tt.args.state,
+			}
+			err = reconciler.Reconcile()
 			if !tt.wantErr && err != nil {
 				t.Errorf("unexpected error, err: '%v'", err)
 			}
@@ -144,14 +154,15 @@ func Test_Reconcile(t *testing.T) {
 				t.Errorf("expected error, got: '%v'", err)
 			}
 
-			if !tt.wantErr && !cmp.Equal(tt.want(tt.args.config), tt.args.state) {
-				diff := cmp.Diff(tt.want(tt.args.config), tt.args.state)
+			if !tt.wantErr && !cmp.Equal(tt.want(tempDirectory), tt.args.state) {
+				diff := cmp.Diff(tt.want(tempDirectory), tt.args.state)
 				t.Errorf("backup.Reconcile() mismatch (-want +got):\n%s", diff)
 			}
 
-			// clean up the new backup
-			if tt.after != nil {
-				tt.after(tt.args.config)
+			// clean up the temporary working directory
+			err = tt.after(tempDirectory)
+			if err != nil {
+				t.Errorf("unexpected error, err: '%v'", err)
 			}
 		})
 	}
@@ -216,7 +227,11 @@ func Test_create(t *testing.T) {
 			}
 
 			// create the backup
-			backup, err := create(tt.args.config)
+			reconciler := Reconciler{
+				Config: tt.args.config,
+				State:  nil,
+			}
+			backup, err := reconciler.create()
 			if err != nil {
 				t.Errorf("unexpected error, err: '%v'", err)
 			}

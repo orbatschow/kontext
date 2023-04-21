@@ -40,7 +40,11 @@ func Init(_ *cobra.Command, _ []string) {
 	}
 
 	// create backup
-	err = backup.Reconcile(currentConfig, currentState)
+	backupReconciler := backup.Reconciler{
+		Config: currentConfig,
+		State:  currentState,
+	}
+	err = backupReconciler.Reconcile()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
