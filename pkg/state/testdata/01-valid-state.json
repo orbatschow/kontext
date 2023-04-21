@@ -1,0 +1,16 @@
+{
+  "group": {
+    "active": "dev",
+    "history": [
+      "local",
+      "dev"
+    ]
+  },
+  "context": {
+    "active": "kind-dev",
+    "history": [
+      "kind-dev",
+      "kind-local"
+    ]
+  }
+}

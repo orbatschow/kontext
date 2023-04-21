@@ -3,21 +3,29 @@ package config
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/adrg/xdg"
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/providers/structs"
 	"github.com/pterm/pterm"
 )
 
-// Global koanf instance. Use . as the key path delimiter. This can be / or anything.
 var (
-	instance = koanf.New(".")
+	DefaultConfigPath = filepath.Join(xdg.ConfigHome, "kontext", "kontext.yaml")
 )
 
-var config *Config
+const (
+	DefaultStateHistoryLimit   = 10
+	DefaultBackupRevisionLimit = 10
+)
+
+type Client struct {
+	// File of the file, that will be used to read the configuration
+	File string
+}
 
 type Source struct {
 	Name    string   `json:"name"`
@@ -33,12 +41,17 @@ type Group struct {
 
 type Backup struct {
 	Enabled   bool   `json:"enabled"`
-	Location  string `json:"location,omitempty"`
-	Revisions *int   `json:"revisions,omitempty"`
+	Directory string `json:"directory,omitempty"`
+	Revisions int    `json:"revisions,omitempty"`
 }
 
 type History struct {
-	Size *int `json:"size"`
+	Size int `json:"size"`
+}
+
+type State struct {
+	File    string  `json:"file,omitempty"`
+	History History `json:"history,omitempty"`
 }
 
 type Global struct {
@@ -48,51 +61,58 @@ type Global struct {
 
 type Config struct {
 	Global  Global   `json:"global,omitempty"`
-	Backup  Backup   `json:"backup"`
-	History History  `json:"history,omitempty"`
-	Groups  []Group  `json:"groups"`
-	Sources []Source `json:"sources"`
+	Backup  Backup   `json:"backup,omitempty"`
+	State   State    `json:"state,omitempty"`
+	Groups  []Group  `json:"groups,omitempty"`
+	Sources []Source `json:"sources,omitempty"`
 }
 
-// validate will check the given configuration for errors
-func validate(config *Config) error {
-	if len(config.Global.Kubeconfig) == 0 {
-		value, ok := os.LookupEnv("KUBECONFIG")
-		if !ok {
-			return fmt.Errorf("no kubeconfig path provided and KUBECONFIG environment variable unset")
-		}
+// Read reads the current config file and serialize it with koanf
+func (r *Client) Read() (*Config, error) {
+	instance := koanf.New(".")
+	var config *Config
 
-		config.Global.Kubeconfig = value
+	// load configuration with into koanf
+	if err := instance.Load(file.Provider(r.File), yaml.Parser()); err != nil {
+		return nil, fmt.Errorf("failed to load config file, expected file at '%s'", r.File)
 	}
 
-	return nil
-}
-
-// Read will parse a kontext configuration file
-func Read() error {
-	configFile := path.Join(xdg.ConfigHome, "kontext", "kontext.yaml")
-
-	if err := instance.Load(file.Provider(configFile), yaml.Parser()); err != nil {
-		return fmt.Errorf("failed to load config file, expected file at '%s'", configFile)
-	}
-
-	if err := instance.UnmarshalWithConf("", &config, koanf.UnmarshalConf{Tag: "json"}); err != nil {
-		return err
-	}
-
-	err := validate(config)
+	// set default values
+	err := instance.Load(structs.Provider(Config{
+		Global: Global{
+			Kubeconfig: os.Getenv("KUBECONFIG"),
+			Verbosity:  pterm.LogLevelInfo,
+		},
+		Backup: Backup{
+			Enabled:   true,
+			Directory: filepath.Join(xdg.DataHome, "kontext", "backup"),
+			Revisions: DefaultBackupRevisionLimit,
+		},
+		State: State{
+			History: History{
+				Size: DefaultStateHistoryLimit,
+			},
+			File: filepath.Join(xdg.StateHome, "kontext", "state.json"),
+		},
+	}, "koanf"), nil)
 	if err != nil {
-		return err
+		return nil, err
+	}
+
+	// marshal the given configuration into the struct
+	if err := instance.UnmarshalWithConf("", &config, koanf.UnmarshalConf{Tag: "json"}); err != nil {
+		return nil, err
 	}
 
 	expandEnvironment(config)
 
-	return nil
+	return config, nil
 }
 
 func expandEnvironment(config *Config) {
 	config.Global.Kubeconfig = os.ExpandEnv(config.Global.Kubeconfig)
-	config.Backup.Location = os.ExpandEnv(config.Backup.Location)
+	config.Backup.Directory = os.ExpandEnv(config.Backup.Directory)
+	config.State.File = os.ExpandEnv(config.State.File)
 
 	for i, source := range config.Sources {
 		for j, include := range source.Include {
@@ -103,9 +123,4 @@ func expandEnvironment(config *Config) {
 		}
 		config.Sources[i] = source
 	}
-}
-
-// Get will return a parsed kontext Config struct
-func Get() *Config {
-	return config
 }

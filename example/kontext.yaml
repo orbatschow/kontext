@@ -1,20 +1,34 @@
 # global configuration options
 global:
-  kubeconfig: "$HOME/.config/kontext/kubeconfig.yaml"
-  # log level, possible values are:
-  # 1 -> Trace
-  # 2 -> Debug
-  # 3 -> Info
-  # 4 -> Warn
-  # 5 -> Error
-  # 6 -> Fatal
-  # 7 -> Print
-  verbosity: 0
 
-# define backup settings for old kubeconfig files
+  # target kubeconfig file for kontext, all sources will be merged into this file
+  # will be replaced each time a group/context is set
+  # see .backup for backup/restore options
+  kubeconfig: "$HOME/.config/kontext/kubeconfig.yaml"
+  # verbosity, possible values are:
+  # - 1 -> Trace
+  # - 2 -> Debug
+  # - 3 -> Info
+  # - 4 -> Warn
+  # - 5 -> Error
+  # - 6 -> Fatal
+  # - 7 -> Print
+  verbosity: 3
+
+# state configuration options
+state:
+  # override the default state file path
+  path: $HOME/.local/state/kontext/state.json
+
+# backup configuration settings
+# backup targets:
+# - .global.kubeconfig
 backup:
+  # enable the backup, defaults to true
   enabled: true
-  location: $HOME/.local/share/kontext
+  # override the default backup directory
+  path: $HOME/.local/share/kontext
+  # override the maximum number of kubeconfig files, that shall be kept by kontext
   revisions: 10
 
 # groups define a set of sources to include

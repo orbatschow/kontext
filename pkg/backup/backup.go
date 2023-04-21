@@ -3,52 +3,52 @@ package backup
 import (
 	"fmt"
 	"os"
-	"path"
-	"strconv"
+	"path/filepath"
 	"time"
 
-	"github.com/adrg/xdg"
+	"github.com/orbatschow/kontext/pkg/backup/revision"
 	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/kubeconfig"
 	"github.com/orbatschow/kontext/pkg/logger"
+	"github.com/orbatschow/kontext/pkg/state"
 )
 
-func Create(config *config.Config) error {
+type Filename string
+type Directory string
+
+type Reconciler struct {
+	Config *config.Config
+	State  *state.State
+}
+
+// Reconcile creates a new backup revision (if backups are enabled), updates the state and cleans up old revisions
+func (r *Reconciler) Reconcile() error {
 	log := logger.New()
 
-	if !config.Backup.Enabled {
+	if !r.Config.Backup.Enabled {
 		log.Warn("skipping backup, it is disabled")
 		return nil
 	}
 
-	file, err := os.Open(config.Global.Kubeconfig)
-	if err != nil {
-		return err
-	}
-	apiConfig, err := kubeconfig.Read(file)
-	if err != nil {
-		return err
-	}
-
-	if len(config.Backup.Location) == 0 {
-		config.Backup.Location = path.Join(xdg.DataHome, "kontext", "backup")
-	}
-
-	if _, err := os.Stat(config.Backup.Location); os.IsNotExist(err) {
-		err = os.MkdirAll(config.Backup.Location, 0755)
-		if err != nil {
-			return fmt.Errorf("could not create backup directory, err: '%w'", err)
-		}
-	}
-
-	timestamp := strconv.Itoa(makeTimestamp())
-	backupFileName := fmt.Sprintf("kubeconfig-%s.yaml", timestamp)
-	backupFile, err := os.Create(path.Join(config.Backup.Location, backupFileName))
+	// create a new backup
+	backupFile, err := r.create()
 	if err != nil {
 		return err
 	}
 
-	err = kubeconfig.Write(backupFile, apiConfig)
+	// add the new backup revision and remove revisions, that exceed the limit
+	revisionReconciler := revision.Reconciler{
+		Config: r.Config,
+		State:  r.State,
+		Backup: backupFile,
+	}
+	revisions, err := revisionReconciler.Reconcile()
+	if err != nil {
+		return err
+	}
+	r.State.Backup.Revisions = revisions
+
+	err = state.Write(r.Config, r.State)
 	if err != nil {
 		return err
 	}
@@ -56,6 +56,46 @@ func Create(config *config.Config) error {
 	return nil
 }
 
-func makeTimestamp() int {
-	return int(time.Now().UnixNano() / int64(time.Millisecond))
+// create creates a new backup revision
+func (r *Reconciler) create() (*os.File, error) {
+	file, err := os.Open(r.Config.Global.Kubeconfig)
+	if err != nil {
+		return nil, err
+	}
+	apiConfig, err := kubeconfig.Read(file)
+	if err != nil {
+		return nil, err
+	}
+
+	backupFilename := computeBackupFileName(r.Config)
+
+	if _, err := os.Stat(r.Config.Backup.Directory); os.IsNotExist(err) {
+		err = os.MkdirAll(r.Config.Backup.Directory, 0755)
+		if err != nil {
+			return nil, fmt.Errorf("could not create backup directory, err: '%w'", err)
+		}
+	}
+
+	backupFile, err := os.OpenFile(string(backupFilename), os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return nil, err
+	}
+
+	err = kubeconfig.Write(backupFile, apiConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return backupFile, nil
+}
+
+// computeBackupFileName builds the file name for the new backup
+func computeBackupFileName(config *config.Config) Filename {
+	// compute the current timestamp
+	timestamp := int(time.Now().UnixNano() / int64(time.Millisecond))
+	// compute the backup file name
+	backupFileName := fmt.Sprintf("kubeconfig-%d.yaml", timestamp)
+	// compute the backup file path
+	backupFilePath := filepath.Join(config.Backup.Directory, backupFileName)
+	return Filename(backupFilePath)
 }

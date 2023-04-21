@@ -17,7 +17,10 @@ import (
 	"k8s.io/client-go/tools/clientcmd/api"
 )
 
-const MaxSelectHeight = 500
+const (
+	MaxSelectHeight    = 500
+	PreviousGroupAlias = "-"
+)
 
 type Client struct {
 	Config    *config.Config
@@ -26,8 +29,19 @@ type Client struct {
 }
 
 func New() (*Client, error) {
-	config := config.Get()
+	configClient := &config.Client{
+		File: config.DefaultConfigPath,
+	}
+	config, err := configClient.Read()
+	if err != nil {
+		return nil, err
+	}
 	file, err := os.Open(config.Global.Kubeconfig)
+	if err != nil {
+		return nil, err
+	}
+
+	state, err := state.Read(config)
 	if err != nil {
 		return nil, err
 	}
@@ -39,17 +53,28 @@ func New() (*Client, error) {
 
 	return &Client{
 		Config:    config,
-		State:     state.Get(),
+		State:     state,
 		APIConfig: apiConfig,
 	}, nil
+}
+
+func (c *Client) Get(groupName string) (*config.Group, error) {
+	match, ok := lo.Find(c.Config.Groups, func(item config.Group) bool {
+		return item.Name == groupName
+	})
+	if !ok {
+		return nil, fmt.Errorf("could not find group: '%s'", groupName)
+	}
+
+	return &match, nil
 }
 
 func (c *Client) Set(groupName string) error {
 	log := logger.New()
 	history := c.State.Group.History
 
-	if len(history) > 1 && groupName == "-" {
-		groupName = history[len(history)-2]
+	if len(history) > 1 && groupName == PreviousGroupAlias {
+		groupName = string(history[len(history)-2])
 	}
 
 	if len(groupName) == 0 {
@@ -60,7 +85,7 @@ func (c *Client) Set(groupName string) error {
 		groupName, _ = pterm.DefaultInteractiveSelect.WithMaxHeight(MaxSelectHeight).WithOptions(keys).Show()
 	}
 
-	var files []string
+	var files []*os.File
 
 	group, ok := lo.Find(c.Config.Groups, func(item config.Group) bool {
 		return item.Name == groupName
@@ -77,7 +102,7 @@ func (c *Client) Set(groupName string) error {
 			log.Warn("could not find source", log.Args("source", sourceName, "group", groupName))
 			continue
 		}
-		match, err := source.Expand(&sourceMatch)
+		match, err := source.ComputeFiles(&sourceMatch)
 		if err != nil {
 			return err
 		}
@@ -106,20 +131,9 @@ func (c *Client) Set(groupName string) error {
 	// set new api config and modify state
 	c.APIConfig = apiConfig
 	c.State.Group.Active = groupName
-	c.State.Group.History = state.ComputeHistory(c.Config, groupName, c.State.Group.History)
+	c.State.Group.History = state.ComputeHistory(c.Config, state.History(groupName), c.State.Group.History)
 
 	return nil
-}
-
-func (c *Client) Get(groupName string) (*config.Group, error) {
-	match, ok := lo.Find(c.Config.Groups, func(item config.Group) bool {
-		return item.Name == groupName
-	})
-	if !ok {
-		return nil, fmt.Errorf("could not find group: '%s'", groupName)
-	}
-
-	return &match, nil
 }
 
 func (c *Client) Reload() error {
