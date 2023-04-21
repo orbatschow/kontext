@@ -65,7 +65,7 @@ run: ## run kontext
 # lint
 ######################################################
 .PHONY: lint
-lint: golangci-lint ## lint all code with golangci-lint
+lint: golangci-lint generate ## lint all code with golangci-lint
 	$(GOLANGCI_LINT)-$(GOLANGCI_LINT_VERSION) run ./... --timeout 15m0s -v
 
 
@@ -73,7 +73,7 @@ lint: golangci-lint ## lint all code with golangci-lint
 # test
 ######################################################
 .PHONY: test
-test: tparse
+test: generate tparse
 	set -eu
 	set -o pipefail
 	go test ./... -cover -json | $(TPARSE)-$(TPARSE_VERSION) -all
