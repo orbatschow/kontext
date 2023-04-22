@@ -27,31 +27,12 @@ type Client struct {
 	File string
 }
 
-type Source struct {
-	Name    string   `json:"name"`
-	Include []string `json:"include,omitempty"`
-	Exclude []string `json:"exclude"`
-}
-
-type Group struct {
-	Name    string   `json:"name"`
-	Context string   `json:"context,omitempty"`
-	Sources []string `json:"sources"`
-}
-
-type Backup struct {
-	Enabled   bool   `json:"enabled"`
-	Directory string `json:"directory,omitempty"`
-	Revisions int    `json:"revisions,omitempty"`
-}
-
-type History struct {
-	Size int `json:"size"`
-}
-
-type State struct {
-	File    string  `json:"file,omitempty"`
-	History History `json:"history,omitempty"`
+type Config struct {
+	Global Global `json:"global,omitempty"`
+	State  State  `json:"state,omitempty"`
+	Backup Backup `json:"backup,omitempty"`
+	Group  Group  `json:"group,omitempty"`
+	Source Source `json:"source,omitempty"`
 }
 
 type Global struct {
@@ -59,12 +40,59 @@ type Global struct {
 	Verbosity  pterm.LogLevel `json:"verbosity,omitempty"`
 }
 
-type Config struct {
-	Global  Global   `json:"global,omitempty"`
-	Backup  Backup   `json:"backup,omitempty"`
-	State   State    `json:"state,omitempty"`
-	Groups  []Group  `json:"groups,omitempty"`
-	Sources []Source `json:"sources,omitempty"`
+// State configuration options
+type State struct {
+	// path of the state file
+	File    string  `json:"file,omitempty"`
+	History History `json:"history,omitempty"`
+}
+
+type History struct {
+	// set the maximum history size
+	Size int `json:"size"`
+}
+
+// Backup configuration options
+type Backup struct {
+	// enable/disable the backup, defaults to true
+	Enabled bool `json:"enabled"`
+	// set the backup directory
+	Directory string `json:"directory,omitempty"`
+	// set the maximum backup revision count
+	Revisions int `json:"revisions,omitempty"`
+}
+
+// Group configuration Options
+type Group struct {
+	Items     []GroupItem `json:"items"`
+	Selection Selection   `json:"selection"`
+}
+
+type GroupItem struct {
+	Name    string   `json:"name"`
+	Context Context  `json:"context,omitempty"`
+	Sources []string `json:"sources"`
+}
+
+type Context struct {
+	Default   string    `json:"default"`
+	Selection Selection `json:"selection"`
+}
+
+type Selection struct {
+	Default string `json:"default"`
+	Sort    string `json:"sort"`
+}
+
+// Source configuration options
+type Source struct {
+	Items []SourceItem `json:"items"`
+}
+
+type SourceItem struct {
+	Name    string   `json:"name"`
+	Include []string `json:"include,omitempty"`
+	Exclude []string `json:"exclude"`
 }
 
 // Read reads the current config file and serialize it with koanf
@@ -114,13 +142,13 @@ func expandEnvironment(config *Config) {
 	config.Backup.Directory = os.ExpandEnv(config.Backup.Directory)
 	config.State.File = os.ExpandEnv(config.State.File)
 
-	for i, source := range config.Sources {
+	for i, source := range config.Source.Items {
 		for j, include := range source.Include {
 			source.Include[j] = os.ExpandEnv(include)
 		}
 		for j, exclude := range source.Exclude {
 			source.Exclude[j] = os.ExpandEnv(exclude)
 		}
-		config.Sources[i] = source
+		config.Source.Items[i] = source
 	}
 }

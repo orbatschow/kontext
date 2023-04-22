@@ -8,25 +8,34 @@ backup:
 state:
   file: $HOME/.local/state/kontext/state.json
 
-groups:
-  - name: default
-    context: kind-local
-    sources:
-      - default
+group:
+  items:
+    - name: default
+      context:
+        default: kind-local
+        selection:
+          default: kind-local
+          sort: desc
+      sources:
+        - default
+    - name: dev
+      sources:
+        - dev
+  selection:
+    default: dev
+    sort: asc
 
-  - name: dev
-    sources:
-      - dev
 
-sources:
-  - name: default
-    include:
-      - $HOME/.config/kontext/**/*.yaml
-    exclude:
-      - $HOME/.config/kontext/**/*prod*.yaml
+source:
+  items:
+    - name: default
+      include:
+        - $HOME/.config/kontext/**/*.yaml
+      exclude:
+        - $HOME/.config/kontext/**/*prod*.yaml
 
-  - name: dev
-    include:
-      - $HOME/.config/kontext/dev/**/*.yaml
-    exclude:
-      - $HOME/.config/kontext/dev/**/*prod*.yaml
+    - name: dev
+      include:
+        - $HOME/.config/kontext/dev/**/*.yaml
+      exclude:
+        - $HOME/.config/kontext/dev/**/*prod*.yaml
