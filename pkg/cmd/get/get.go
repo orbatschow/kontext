@@ -51,7 +51,7 @@ func newGetGroupCommand() *cobra.Command {
 				os.Exit(1)
 			}
 
-			var groups []config.Group
+			var groups []config.GroupItem
 			if len(groupName) != 0 {
 				match, err := groupClient.Get(groupName)
 				if err != nil {
@@ -60,7 +60,7 @@ func newGetGroupCommand() *cobra.Command {
 				}
 				groups = append(groups, *match)
 			} else {
-				groups = groupClient.Config.Groups
+				groups = groupClient.Config.Group.Items
 			}
 
 			err = groupClient.Print(groups...)

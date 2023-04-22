@@ -20,6 +20,8 @@ import (
 const (
 	MaxSelectHeight    = 500
 	PreviousGroupAlias = "-"
+	SortAsc            = "asc"
+	SortDesc           = "desc"
 )
 
 type Client struct {
@@ -58,8 +60,8 @@ func New() (*Client, error) {
 	}, nil
 }
 
-func (c *Client) Get(groupName string) (*config.Group, error) {
-	match, ok := lo.Find(c.Config.Groups, func(item config.Group) bool {
+func (c *Client) Get(groupName string) (*config.GroupItem, error) {
+	match, ok := lo.Find(c.Config.Group.Items, func(item config.GroupItem) bool {
 		return item.Name == groupName
 	})
 	if !ok {
@@ -78,16 +80,20 @@ func (c *Client) Set(groupName string) error {
 	}
 
 	if len(groupName) == 0 {
-		var keys []string
-		for _, value := range c.Config.Groups {
-			keys = append(keys, value.Name)
+		printer, err := c.buildInteractiveSelectPrinter()
+		if err != nil {
+			return err
 		}
-		groupName, _ = pterm.DefaultInteractiveSelect.WithMaxHeight(MaxSelectHeight).WithOptions(keys).Show()
+
+		groupName, err = printer.Show()
+		if err != nil {
+			return err
+		}
 	}
 
 	var files []*os.File
 
-	group, ok := lo.Find(c.Config.Groups, func(item config.Group) bool {
+	group, ok := lo.Find(c.Config.Group.Items, func(item config.GroupItem) bool {
 		return item.Name == groupName
 	})
 	if !ok {
@@ -95,7 +101,7 @@ func (c *Client) Set(groupName string) error {
 	}
 
 	for _, sourceName := range group.Sources {
-		sourceMatch, ok := lo.Find(c.Config.Sources, func(item config.Source) bool {
+		sourceMatch, ok := lo.Find(c.Config.Source.Items, func(item config.SourceItem) bool {
 			return sourceName == item.Name
 		})
 		if !ok {
@@ -115,7 +121,7 @@ func (c *Client) Set(groupName string) error {
 	}
 
 	// if the group has a default context, set it
-	defaultContext := group.Context
+	defaultContext := group.Context.Default
 	if len(defaultContext) > 0 {
 		contextClient := context.Client{
 			Config:    c.Config,
@@ -146,7 +152,7 @@ func (c *Client) Reload() error {
 	return nil
 }
 
-func (c *Client) Print(groups ...config.Group) error {
+func (c *Client) Print(groups ...config.GroupItem) error {
 	table := pterm.TableData{
 		{"Active", "Name", "Source(s)"},
 	}
