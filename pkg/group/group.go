@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/orbatschow/kontext/pkg/config"
@@ -20,6 +21,8 @@ import (
 const (
 	MaxSelectHeight    = 500
 	PreviousGroupAlias = "-"
+	SortAsc            = "asc"
+	SortDesc           = "desc"
 )
 
 type Client struct {
@@ -78,11 +81,7 @@ func (c *Client) Set(groupName string) error {
 	}
 
 	if len(groupName) == 0 {
-		var keys []string
-		for _, value := range c.Config.Group.Items {
-			keys = append(keys, value.Name)
-		}
-		groupName, _ = pterm.DefaultInteractiveSelect.WithMaxHeight(MaxSelectHeight).WithOptions(keys).Show()
+		groupName = c.selectGroup()
 	}
 
 	var files []*os.File
@@ -134,6 +133,42 @@ func (c *Client) Set(groupName string) error {
 	c.State.Group.History = state.ComputeHistory(c.Config, state.History(groupName), c.State.Group.History)
 
 	return nil
+}
+
+// start an interactive context selection
+func (c *Client) selectGroup() string {
+	// compute all selection options
+	var keys []string
+	for _, value := range c.Config.Group.Items {
+		keys = append(keys, value.Name)
+	}
+
+	// sort the selection
+	switch c.Config.Group.Selection.Sort {
+	case SortAsc:
+		sort.Strings(keys)
+	case SortDesc:
+		sort.Sort(sort.Reverse(sort.StringSlice(keys)))
+	default:
+		sort.Strings(keys)
+	}
+
+	// set the default selection option
+	var groupName string
+	if len(c.Config.Group.Selection.Default) > 0 {
+		groupName, _ = pterm.DefaultInteractiveSelect.
+			WithMaxHeight(MaxSelectHeight).
+			WithOptions(keys).
+			WithDefaultOption(c.Config.Group.Selection.Default).
+			Show()
+	} else {
+		groupName, _ = pterm.DefaultInteractiveSelect.
+			WithMaxHeight(MaxSelectHeight).
+			WithOptions(keys).
+			Show()
+	}
+
+	return groupName
 }
 
 func (c *Client) Reload() error {

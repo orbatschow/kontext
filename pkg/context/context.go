@@ -3,12 +3,14 @@ package context
 import (
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/kubeconfig"
 	"github.com/orbatschow/kontext/pkg/logger"
 	"github.com/orbatschow/kontext/pkg/state"
 	"github.com/pterm/pterm"
+	"github.com/samber/lo"
 	"k8s.io/client-go/tools/clientcmd/api"
 )
 
@@ -21,6 +23,8 @@ type Client struct {
 const (
 	MaxSelectHeight      = 500
 	PreviousContextAlias = "-"
+	SortAsc              = "asc"
+	SortDesc             = "desc"
 )
 
 func New() (*Client, error) {
@@ -86,12 +90,12 @@ func (c *Client) Set(contextName string) error {
 		contextName = string(history[len(history)-2])
 	}
 
+	var err error
 	if len(contextName) == 0 {
-		var keys []string
-		for k := range c.APIConfig.Contexts {
-			keys = append(keys, k)
+		contextName, err = c.selectContext()
+		if err != nil {
+			return err
 		}
-		contextName, _ = pterm.DefaultInteractiveSelect.WithMaxHeight(MaxSelectHeight).WithOptions(keys).Show()
 	}
 
 	_, ok := c.APIConfig.Contexts[contextName]
@@ -105,6 +109,50 @@ func (c *Client) Set(contextName string) error {
 
 	log.Info("switched context", log.Args("context", contextName))
 	return nil
+}
+
+// start an interactive context selection
+func (c *Client) selectContext() (string, error) {
+	// compute all selection options
+	var keys []string
+	for k := range c.APIConfig.Contexts {
+		keys = append(keys, k)
+	}
+
+	// get the active group
+	group, ok := lo.Find(c.Config.Group.Items, func(item config.GroupItem) bool {
+		return item.Name == c.State.Group.Active
+	})
+	if !ok {
+		return "", fmt.Errorf("could not find active group: '%s'", c.State.Group.Active)
+	}
+
+	// sort the selection
+	switch group.Context.Selection.Sort {
+	case SortAsc:
+		sort.Strings(keys)
+	case SortDesc:
+		sort.Sort(sort.Reverse(sort.StringSlice(keys)))
+	default:
+		sort.Strings(keys)
+	}
+
+	// set the default selection option
+	var contextName string
+	if len(group.Context.Selection.Default) > 0 {
+		contextName, _ = pterm.DefaultInteractiveSelect.
+			WithMaxHeight(MaxSelectHeight).
+			WithOptions(keys).
+			WithDefaultOption(group.Context.Selection.Default).
+			Show()
+	} else {
+		contextName, _ = pterm.DefaultInteractiveSelect.
+			WithMaxHeight(MaxSelectHeight).
+			WithOptions(keys).
+			Show()
+	}
+
+	return contextName, nil
 }
 
 func (c *Client) Print(contexts map[string]*api.Context) error {
