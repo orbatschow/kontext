@@ -21,6 +21,8 @@ type Client struct {
 const (
 	MaxSelectHeight      = 500
 	PreviousContextAlias = "-"
+	SortAsc              = "asc"
+	SortDesc             = "desc"
 )
 
 func New() (*Client, error) {
@@ -87,11 +89,14 @@ func (c *Client) Set(contextName string) error {
 	}
 
 	if len(contextName) == 0 {
-		var keys []string
-		for k := range c.APIConfig.Contexts {
-			keys = append(keys, k)
+		printer, err := c.buildInteractiveSelectPrinter()
+		if err != nil {
+			return err
 		}
-		contextName, _ = pterm.DefaultInteractiveSelect.WithMaxHeight(MaxSelectHeight).WithOptions(keys).Show()
+		contextName, err = printer.Show()
+		if err != nil {
+			return err
+		}
 	}
 
 	_, ok := c.APIConfig.Contexts[contextName]

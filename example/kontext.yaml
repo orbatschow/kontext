@@ -31,75 +31,98 @@ backup:
   # override the maximum number of kubeconfig files, that shall be kept by kontext
   revisions: 10
 
-# groups define a set of sources to include
-groups:
-  # a group named "default"
-  - name: default
-    # set a default context, that will be activated as soon as you switch to this group
-    # note: the context has to be available within this group
-    context: kind-kind
-    # all sources referred by this group
-    sources:
-      - primary
+# group configuration options
+group:
+  # define groups
+  items:
+    # a group named "default"
+    - name: default
+      # all sources referred by this group
+      sources:
+        - primary
+      # context configuration options within this group
+      context:
+        # set a default context, that will be activated as soon as you switch to this group
+        default: kind-kind
+        selection:
+          # make this context the default selected option within the interactive dialogue
+          default: kind-kind
+          # sort the interactive selection
+          # possible values, defaults to asc:
+          # - asc
+          # - desc
+          sort: asc
 
-  # another group called dev, that refers to the sources of multiple customers
-  - name: dev
-    # set a default context, that will be activated as soon as you switch to this group
-    # note: the context has to be available within this group
-    context: dev-01
-    sources:
-      - customer-a.dev
-      - customer-b.dev
+    # another group called dev, that refers to the sources of multiple customers
+    - name: dev
+      # set a default context, that will be activated as soon as you switch to this group
+      # note: the context has to be available within this group
+      context: dev-01
+      sources:
+        - customer-a.dev
+        - customer-b.dev
 
-  # another group called prod, that refers to a source called prod
-  - name: prod
-    sources:
-      - prod
+    # another group called prod, that refers to a source called prod
+    - name: prod
+      sources:
+        - prod
 
-  # another group called testing, that refers to multiple sources
-  - name: testing
-    sources:
-      - local
-      - private
+    # another group called testing, that refers to multiple sources
+    - name: testing
+      sources:
+        - local
+        - private
+
+  # interactive selection options for all groups
+  selection:
+    # make this group the default selected group
+    default: dev
+    # sort the interactive selection
+    # possible values, defaults to asc:
+    # - asc
+    # - desc
+    sort: asc
+
 
 # define all sources, that are used by groups
-sources:
-  # a source called primary, that defines one include and one exclude glob
-  - name: primary
-    include:
-      - $HOME/.config/kontext/**/*.yaml
-    exclude:
-      - $HOME/.config/kontext/**/*prod*.yaml
+source:
+  items:
+    # a source called primary, that defines one include and one exclude glob
+    - name: primary
+      include:
+        - $HOME/.config/kontext/**/*.yaml
+      exclude:
+        - $HOME/.config/kontext/**/*prod*.yaml
 
-  # a source called customer-a.dev, that defines one include and one exclude glob
-  - name: customer-a.dev
-    include:
-      - $HOME/.config/kontext/dev/customer-a/**/*.yaml
-    exclude:
-      - $HOME/.config/kontext/dev/**/*skip*.yaml
+    # a source called customer-a.dev, that defines one include and one exclude glob
+    - name: customer-a.dev
+      include:
+        - $HOME/.config/kontext/dev/customer-a/**/*.yaml
+      exclude:
+        - $HOME/.config/kontext/dev/**/*skip*.yaml
 
-  # a source called customer-b.dev, that defines one include and one exclude glob
-  - name: customer-b.dev
-    include:
-      - $HOME/.config/kontext/dev/customer-b/**/*.yaml
-    exclude:
-      - $HOME/.config/kontext/dev/**/*skip*.yaml
+    # a source called customer-b.dev, that defines one include and one exclude glob
+    - name: customer-b.dev
+      include:
+        - $HOME/.config/kontext/dev/customer-b/**/*.yaml
+      exclude:
+        - $HOME/.config/kontext/dev/**/*skip*.yaml
 
-  # a source called prod, that defines one include and one exclude glob
-  - name: prod
-    include:
-      - $HOME/.config/kontext/prod/**/*.yaml
-    exclude:
-      - $HOME/.config/kontext/prod/**/*skip*.yaml
+    # a source called prod, that defines one include and one exclude glob
+    - name: prod
+      include:
+        - $HOME/.config/kontext/prod/**/*.yaml
+      exclude:
+        - $HOME/.config/kontext/prod/**/*skip*.yaml
 
-  # a source called local, that defines three include and no exclude globs
-  - name: local
-    include:
-      - $HOME/.config/kontext/orbatschow/**/*.yaml
-      - $HOME/.config/kontext/local/**/*.yaml
-      - $HOME/.config/kontext/kind/**/*.yaml
+    # a source called local, that defines three include and no exclude globs
+    - name: local
+      include:
+        - $HOME/.config/kontext/orbatschow/**/*.yaml
+        - $HOME/.config/kontext/local/**/*.yaml
+        - $HOME/.config/kontext/kind/**/*.yaml
 
-  # a source called local, that defines one include and no exclude glob
-  - name: private
-    include:
-      - $HOME/.config/kontext/private/**/*.yaml
+    # a source called local, that defines one include and no exclude glob
+    - name: private
+      include:
+        - $HOME/.config/kontext/private/**/*.yaml
