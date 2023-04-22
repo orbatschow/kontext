@@ -8,7 +8,6 @@ import (
 	"github.com/orbatschow/kontext/pkg/kubeconfig"
 	"github.com/orbatschow/kontext/pkg/logger"
 	"github.com/orbatschow/kontext/pkg/state"
-	"github.com/pterm/pterm"
 	"k8s.io/client-go/tools/clientcmd/api"
 )
 
@@ -110,20 +109,4 @@ func (c *Client) Set(contextName string) error {
 
 	log.Info("switched context", log.Args("context", contextName))
 	return nil
-}
-
-func (c *Client) BuildTablePrinter(contexts map[string]*api.Context) *pterm.TablePrinter {
-	table := pterm.TableData{
-		{"Active", "Name", "Cluster", "AuthInfo"},
-	}
-	for key, value := range contexts {
-		active := ""
-		if key == c.State.Context.Active {
-			active = "*"
-		}
-		table = append(table, []string{
-			active, key, value.Cluster, value.AuthInfo,
-		})
-	}
-	return pterm.DefaultTable.WithHasHeader().WithData(table)
 }
