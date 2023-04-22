@@ -80,8 +80,12 @@ func (c *Client) Set(groupName string) error {
 		groupName = string(history[len(history)-2])
 	}
 
+	var err error
 	if len(groupName) == 0 {
-		groupName = c.selectGroup()
+		groupName, err = c.selectGroup().Show()
+		if err != nil {
+			return err
+		}
 	}
 
 	var files []*os.File
@@ -136,7 +140,7 @@ func (c *Client) Set(groupName string) error {
 }
 
 // start an interactive context selection
-func (c *Client) selectGroup() string {
+func (c *Client) selectGroup() *pterm.InteractiveSelectPrinter {
 	// compute all selection options
 	var keys []string
 	for _, value := range c.Config.Group.Items {
@@ -154,21 +158,15 @@ func (c *Client) selectGroup() string {
 	}
 
 	// set the default selection option
-	var groupName string
 	if len(c.Config.Group.Selection.Default) > 0 {
-		groupName, _ = pterm.DefaultInteractiveSelect.
+		return pterm.DefaultInteractiveSelect.
 			WithMaxHeight(MaxSelectHeight).
 			WithOptions(keys).
-			WithDefaultOption(c.Config.Group.Selection.Default).
-			Show()
-	} else {
-		groupName, _ = pterm.DefaultInteractiveSelect.
-			WithMaxHeight(MaxSelectHeight).
-			WithOptions(keys).
-			Show()
+			WithDefaultOption(c.Config.Group.Selection.Default)
 	}
-
-	return groupName
+	return pterm.DefaultInteractiveSelect.
+		WithMaxHeight(MaxSelectHeight).
+		WithOptions(keys)
 }
 
 func (c *Client) Reload() error {

@@ -90,9 +90,12 @@ func (c *Client) Set(contextName string) error {
 		contextName = string(history[len(history)-2])
 	}
 
-	var err error
 	if len(contextName) == 0 {
-		contextName, err = c.selectContext()
+		printer, err := c.selectContext()
+		if err != nil {
+			return err
+		}
+		contextName, err = printer.Show()
 		if err != nil {
 			return err
 		}
@@ -112,7 +115,7 @@ func (c *Client) Set(contextName string) error {
 }
 
 // start an interactive context selection
-func (c *Client) selectContext() (string, error) {
+func (c *Client) selectContext() (*pterm.InteractiveSelectPrinter, error) {
 	// compute all selection options
 	var keys []string
 	for k := range c.APIConfig.Contexts {
@@ -124,7 +127,7 @@ func (c *Client) selectContext() (string, error) {
 		return item.Name == c.State.Group.Active
 	})
 	if !ok {
-		return "", fmt.Errorf("could not find active group: '%s'", c.State.Group.Active)
+		return nil, fmt.Errorf("could not find active group: '%s'", c.State.Group.Active)
 	}
 
 	// sort the selection
@@ -138,21 +141,15 @@ func (c *Client) selectContext() (string, error) {
 	}
 
 	// set the default selection option
-	var contextName string
 	if len(group.Context.Selection.Default) > 0 {
-		contextName, _ = pterm.DefaultInteractiveSelect.
+		return pterm.DefaultInteractiveSelect.
 			WithMaxHeight(MaxSelectHeight).
 			WithOptions(keys).
-			WithDefaultOption(group.Context.Selection.Default).
-			Show()
-	} else {
-		contextName, _ = pterm.DefaultInteractiveSelect.
-			WithMaxHeight(MaxSelectHeight).
-			WithOptions(keys).
-			Show()
+			WithDefaultOption(group.Context.Selection.Default), nil
 	}
-
-	return contextName, nil
+	return pterm.DefaultInteractiveSelect.
+		WithMaxHeight(MaxSelectHeight).
+		WithOptions(keys), nil
 }
 
 func (c *Client) Print(contexts map[string]*api.Context) error {
