@@ -20,7 +20,7 @@ func Test_Get(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *config.Group
+		want    *config.GroupItem
 		wantErr bool
 	}{
 		{
@@ -28,21 +28,27 @@ func Test_Get(t *testing.T) {
 			args: args{
 				GroupName: "dev",
 				Config: &config.Config{
-					Groups: []config.Group{
-						{
-							Name:    "dev",
-							Context: "kind-dev",
-							Sources: []string{
-								"dev",
-								"prod",
+					Group: config.Group{
+						Items: []config.GroupItem{
+							{
+								Name: "dev",
+								Context: config.Context{
+									Default: "kind-dev",
+								},
+								Sources: []string{
+									"dev",
+									"prod",
+								},
 							},
 						},
 					},
 				},
 			},
-			want: &config.Group{
-				Name:    "dev",
-				Context: "kind-dev",
+			want: &config.GroupItem{
+				Name: "dev",
+				Context: config.Context{
+					Default: "kind-dev",
+				},
 				Sources: []string{
 					"dev",
 					"prod",
@@ -55,7 +61,7 @@ func Test_Get(t *testing.T) {
 			args: args{
 				GroupName: "dev",
 				Config: &config.Config{
-					Groups: []config.Group{},
+					Group: config.Group{},
 				},
 			},
 			want:    nil,
@@ -111,19 +117,23 @@ func Test_Set(t *testing.T) {
 							Size: state.DefaultMaximumHistorySize,
 						},
 					},
-					Groups: []config.Group{
-						{
-							Name: "dev",
-							Sources: []string{
-								"dev",
+					Group: config.Group{
+						Items: []config.GroupItem{
+							{
+								Name: "dev",
+								Sources: []string{
+									"dev",
+								},
 							},
 						},
 					},
-					Sources: []config.Source{
-						{
-							Name:    "dev",
-							Include: nil,
-							Exclude: nil,
+					Source: config.Source{
+						Items: []config.SourceItem{
+							{
+								Name:    "dev",
+								Include: nil,
+								Exclude: nil,
+							},
 						},
 					},
 				},
@@ -171,28 +181,34 @@ func Test_Set(t *testing.T) {
 							Size: state.DefaultMaximumHistorySize,
 						},
 					},
-					Groups: []config.Group{
-						{
-							Name:    "dev",
-							Context: "kind-dev",
-							Sources: []string{
-								"dev",
+					Group: config.Group{
+						Items: []config.GroupItem{
+							{
+								Name: "dev",
+								Context: config.Context{
+									Default: "kind-dev",
+								},
+								Sources: []string{
+									"dev",
+								},
 							},
 						},
 					},
-					Sources: []config.Source{
-						{
-							Name: "dev",
-							Include: func() []string {
-								var buffer []string
-								_, caller, _, _ := runtime.Caller(0)
-								kubeConfigFile := filepath.Join(caller, "..", "testdata", "01-valid-kubeconfig.yaml")
+					Source: config.Source{
+						Items: []config.SourceItem{
+							{
+								Name: "dev",
+								Include: func() []string {
+									var buffer []string
+									_, caller, _, _ := runtime.Caller(0)
+									kubeConfigFile := filepath.Join(caller, "..", "testdata", "01-valid-kubeconfig.yaml")
 
-								buffer = append(buffer, kubeConfigFile)
+									buffer = append(buffer, kubeConfigFile)
 
-								return buffer
-							}(),
-							Exclude: nil,
+									return buffer
+								}(),
+								Exclude: nil,
+							},
 						},
 					},
 				},
@@ -226,28 +242,34 @@ func Test_Set(t *testing.T) {
 			args: args{
 				GroupName: "dev",
 				Config: &config.Config{
-					Groups: []config.Group{
-						{
-							Name:    "dev",
-							Context: "invalid",
-							Sources: []string{
-								"dev",
+					Group: config.Group{
+						Items: []config.GroupItem{
+							{
+								Name: "dev",
+								Context: config.Context{
+									Default: "invalid",
+								},
+								Sources: []string{
+									"dev",
+								},
 							},
 						},
 					},
-					Sources: []config.Source{
-						{
-							Name: "dev",
-							Include: func() []string {
-								var buffer []string
-								_, caller, _, _ := runtime.Caller(0)
-								kubeConfigFile := filepath.Join(caller, "..", "testdata", "01-valid-kubeconfig.yaml")
+					Source: config.Source{
+						Items: []config.SourceItem{
+							{
+								Name: "dev",
+								Include: func() []string {
+									var buffer []string
+									_, caller, _, _ := runtime.Caller(0)
+									kubeConfigFile := filepath.Join(caller, "..", "testdata", "01-valid-kubeconfig.yaml")
 
-								buffer = append(buffer, kubeConfigFile)
+									buffer = append(buffer, kubeConfigFile)
 
-								return buffer
-							}(),
-							Exclude: nil,
+									return buffer
+								}(),
+								Exclude: nil,
+							},
 						},
 					},
 				},
@@ -324,19 +346,23 @@ func Test_Reload(t *testing.T) {
 							Size: state.DefaultMaximumHistorySize,
 						},
 					},
-					Groups: []config.Group{
-						{
-							Name: "dev",
-							Sources: []string{
-								"dev",
+					Group: config.Group{
+						Items: []config.GroupItem{
+							{
+								Name: "dev",
+								Sources: []string{
+									"dev",
+								},
 							},
 						},
 					},
-					Sources: []config.Source{
-						{
-							Name:    "dev",
-							Include: nil,
-							Exclude: nil,
+					Source: config.Source{
+						Items: []config.SourceItem{
+							{
+								Name:    "dev",
+								Include: nil,
+								Exclude: nil,
+							},
 						},
 					},
 				},
@@ -385,7 +411,7 @@ func Test_Reload(t *testing.T) {
 func Test_Print(t *testing.T) {
 	type args struct {
 		State *state.State
-		Group []config.Group
+		Group []config.GroupItem
 	}
 	tests := []struct {
 		name    string
@@ -400,10 +426,12 @@ func Test_Print(t *testing.T) {
 						Active: "dev",
 					},
 				},
-				Group: []config.Group{
+				Group: []config.GroupItem{
 					{
-						Name:    "dev",
-						Context: "kind-dev",
+						Name: "dev",
+						Context: config.Context{
+							Default: "kind-dev",
+						},
 						Sources: []string{
 							"dev",
 						},
@@ -416,7 +444,7 @@ func Test_Print(t *testing.T) {
 			name: "should print without an error, even when there is no group",
 			args: args{
 				State: &state.State{},
-				Group: []config.Group{},
+				Group: []config.GroupItem{},
 			},
 			wantErr: false,
 		},
@@ -424,7 +452,7 @@ func Test_Print(t *testing.T) {
 			name: "should print without an error, even when there is no active group",
 			args: args{
 				State: &state.State{},
-				Group: []config.Group{
+				Group: []config.GroupItem{
 					{
 						Name: "dev",
 						Sources: []string{
@@ -439,7 +467,7 @@ func Test_Print(t *testing.T) {
 			name: "should print without an error, even when there is no source",
 			args: args{
 				State: &state.State{},
-				Group: []config.Group{
+				Group: []config.GroupItem{
 					{
 						Name: "dev",
 					},

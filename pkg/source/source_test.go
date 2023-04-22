@@ -13,7 +13,7 @@ import (
 
 func Test_ComputeFiles(t *testing.T) {
 	type args struct {
-		Source *config.Source
+		SourceItem *config.SourceItem
 	}
 	tests := []struct {
 		name    string
@@ -24,12 +24,12 @@ func Test_ComputeFiles(t *testing.T) {
 		{
 			name: "should build the absolute paths for the glob successfully, without duplicates",
 			args: args{
-				Source: func() *config.Source {
+				SourceItem: func() *config.SourceItem {
 					_, caller, _, _ := runtime.Caller(0)
 					include := filepath.Join(caller, "..", "testdata", "*merge*.yaml")
 					exclude := filepath.Join(caller, "..", "testdata", "*merge-invalid.yaml")
 
-					return &config.Source{
+					return &config.SourceItem{
 						Include: []string{
 							// duplication
 							include,
@@ -76,7 +76,7 @@ func Test_ComputeFiles(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ComputeFiles(tt.args.Source)
+			got, err := ComputeFiles(tt.args.SourceItem)
 			if !tt.wantErr && err != nil {
 				t.Errorf("unexpected error, err: '%v'", err)
 			}

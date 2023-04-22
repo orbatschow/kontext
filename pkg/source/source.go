@@ -10,7 +10,7 @@ import (
 	"github.com/samber/lo"
 )
 
-func ComputeFiles(source *config.Source) ([]*os.File, error) {
+func ComputeFiles(source *config.SourceItem) ([]*os.File, error) {
 	log := logger.New()
 	var buffer []*os.File
 

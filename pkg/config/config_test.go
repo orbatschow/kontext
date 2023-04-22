@@ -46,24 +46,36 @@ func Test_Read(t *testing.T) {
 					File:    filepath.Join(xdg.StateHome, "kontext", "state.json"),
 					History: History{},
 				},
-				Groups: []Group{
-					{
-						Name:    "default",
-						Context: "kind-local",
-						Sources: []string{
-							"default",
+				Group: Group{
+					Items: []GroupItem{
+						{
+							Name: "default",
+							Context: Context{
+								Default: "kind-local",
+								Selection: Selection{
+									Default: "kind-local",
+									Sort:    "desc",
+								},
+							},
+							Sources: []string{
+								"default",
+							},
+						},
+						{
+							Name:    "dev",
+							Context: Context{},
+							Sources: []string{
+								"dev",
+							},
 						},
 					},
-					{
-						Name:    "dev",
-						Context: "",
-						Sources: []string{
-							"dev",
-						},
+					Selection: Selection{
+						Default: "dev",
+						Sort:    "asc",
 					},
 				},
-				Sources: []Source{
-					{
+				Source: Source{
+					Items: []SourceItem{{
 						Name: "default",
 						Include: []string{
 							os.ExpandEnv("$HOME/.config/kontext/**/*.yaml"),
@@ -72,13 +84,14 @@ func Test_Read(t *testing.T) {
 							os.ExpandEnv("$HOME/.config/kontext/**/*prod*.yaml"),
 						},
 					},
-					{
-						Name: "dev",
-						Include: []string{
-							os.ExpandEnv("$HOME/.config/kontext/dev/**/*.yaml"),
-						},
-						Exclude: []string{
-							os.ExpandEnv("$HOME/.config/kontext/dev/**/*prod*.yaml"),
+						{
+							Name: "dev",
+							Include: []string{
+								os.ExpandEnv("$HOME/.config/kontext/dev/**/*.yaml"),
+							},
+							Exclude: []string{
+								os.ExpandEnv("$HOME/.config/kontext/dev/**/*prod*.yaml"),
+							},
 						},
 					},
 				},
@@ -130,8 +143,13 @@ func Test_Read(t *testing.T) {
 						Size: DefaultStateHistoryLimit,
 					},
 				},
-				Groups:  []Group{},
-				Sources: []Source{},
+				Group: Group{
+					Items:     []GroupItem{},
+					Selection: Selection{},
+				},
+				Source: Source{
+					Items: []SourceItem{},
+				},
 			},
 			wantErr: false,
 		},
