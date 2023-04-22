@@ -16,9 +16,10 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 		State  *state.State
 	}
 	tests := []struct {
-		name string
-		args args
-		want *pterm.InteractiveSelectPrinter
+		name    string
+		args    args
+		want    *pterm.InteractiveSelectPrinter
+		wantErr bool
 	}{
 		{
 			name: "should return a printer, that sorts the given group as they are given",
@@ -27,13 +28,13 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 					Group: config.Group{
 						Items: []config.GroupItem{
 							{
-								Name: "b",
+								Name: "group-b",
 							},
 							{
-								Name: "c",
+								Name: "group-c",
 							},
 							{
-								Name: "a",
+								Name: "group-a",
 							},
 						},
 					},
@@ -46,9 +47,9 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 				},
 				DefaultText: "Please select an option",
 				Options: []string{
-					"b",
-					"c",
-					"a",
+					"group-b",
+					"group-c",
+					"group-a",
 				},
 				OptionStyle: &pterm.Style{
 					pterm.FgDefault,
@@ -61,6 +62,7 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 					pterm.FgLightMagenta,
 				},
 			},
+			wantErr: false,
 		},
 		{
 			name: "should return a printer, that sorts the given group ascending",
@@ -68,17 +70,17 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 				Config: &config.Config{
 					Group: config.Group{
 						Selection: config.Selection{
-							Sort: "asc",
+							Sort: SortAsc,
 						},
 						Items: []config.GroupItem{
 							{
-								Name: "c",
+								Name: "group-c",
 							},
 							{
-								Name: "b",
+								Name: "group-b",
 							},
 							{
-								Name: "a",
+								Name: "group-a",
 							},
 						},
 					},
@@ -91,9 +93,9 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 				},
 				DefaultText: "Please select an option",
 				Options: []string{
-					"a",
-					"b",
-					"c",
+					"group-a",
+					"group-b",
+					"group-c",
 				},
 				OptionStyle: &pterm.Style{
 					pterm.FgDefault,
@@ -106,24 +108,26 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 					pterm.FgLightMagenta,
 				},
 			},
+			wantErr: false,
 		},
+
 		{
 			name: "should return a printer, that sorts the given group descending",
 			args: args{
 				Config: &config.Config{
 					Group: config.Group{
 						Selection: config.Selection{
-							Sort: "desc",
+							Sort: SortDesc,
 						},
 						Items: []config.GroupItem{
 							{
-								Name: "a",
+								Name: "group-a",
 							},
 							{
-								Name: "b",
+								Name: "group-b",
 							},
 							{
-								Name: "c",
+								Name: "group-c",
 							},
 						},
 					},
@@ -136,9 +140,9 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 				},
 				DefaultText: "Please select an option",
 				Options: []string{
-					"c",
-					"b",
-					"a",
+					"group-c",
+					"group-b",
+					"group-a",
 				},
 				OptionStyle: &pterm.Style{
 					pterm.FgDefault,
@@ -151,6 +155,7 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 					pterm.FgLightMagenta,
 				},
 			},
+			wantErr: false,
 		},
 		{
 			name: "should return a printer, that sorts the given group descending and set a default",
@@ -158,18 +163,18 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 				Config: &config.Config{
 					Group: config.Group{
 						Selection: config.Selection{
-							Sort:    "desc",
-							Default: "c",
+							Sort:    SortDesc,
+							Default: "group-c",
 						},
 						Items: []config.GroupItem{
 							{
-								Name: "a",
+								Name: "group-a",
 							},
 							{
-								Name: "b",
+								Name: "group-b",
 							},
 							{
-								Name: "c",
+								Name: "group-c",
 							},
 						},
 					},
@@ -182,21 +187,38 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 				},
 				DefaultText: "Please select an option",
 				Options: []string{
-					"c",
-					"b",
-					"a",
+					"group-c",
+					"group-b",
+					"group-a",
 				},
 				OptionStyle: &pterm.Style{
 					pterm.FgDefault,
 					pterm.BgDefault,
 				},
-				DefaultOption: "c",
+				DefaultOption: "group-c",
 				MaxHeight:     MaxSelectHeight,
 				Selector:      ">",
 				SelectorStyle: &pterm.Style{
 					pterm.FgLightMagenta,
 				},
 			},
+			wantErr: false,
+		},
+		{
+			name: "should throw an error, as the default selection group does not exist",
+			args: args{
+				Config: &config.Config{
+					Group: config.Group{
+						Selection: config.Selection{
+							Default: "dev",
+						},
+						Items: []config.GroupItem{},
+					},
+				},
+				State: &state.State{},
+			},
+			want:    nil,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -206,12 +228,19 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 				State:  tt.args.State,
 			}
 
-			got := client.buildInteractiveSelectPrinter()
+			got, err := client.buildInteractiveSelectPrinter()
+			if !tt.wantErr && err != nil {
+				t.Errorf("unexpected error, err: '%v'", err)
+			}
+
+			if tt.wantErr && err == nil {
+				t.Errorf("expected error, got: '%v'", err)
+			}
 
 			options := cmpopts.IgnoreUnexported(pterm.InteractiveSelectPrinter{})
-			if !cmp.Equal(&tt.want, &got, options) {
+			if !tt.wantErr && !cmp.Equal(&tt.want, &got, options) {
 				diff := cmp.Diff(tt.want, got, options)
-				t.Errorf("group.Set() state mismatch (-want +got):\n%s", diff)
+				t.Errorf("group.buildInteractiveSelectPrinter() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

@@ -79,9 +79,13 @@ func (c *Client) Set(groupName string) error {
 		groupName = string(history[len(history)-2])
 	}
 
-	var err error
 	if len(groupName) == 0 {
-		groupName, err = c.buildInteractiveSelectPrinter().Show()
+		printer, err := c.buildInteractiveSelectPrinter()
+		if err != nil {
+			return err
+		}
+
+		groupName, err = printer.Show()
 		if err != nil {
 			return err
 		}
