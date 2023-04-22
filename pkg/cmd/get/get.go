@@ -98,7 +98,8 @@ func newGetContextCommand() *cobra.Command {
 					log.Error(err.Error())
 					os.Exit(1)
 				}
-				err = contextClient.Print(match)
+				printer := contextClient.BuildTablePrinter(match)
+				err = printer.Render()
 				if err != nil {
 					log.Error(err.Error())
 					os.Exit(1)
@@ -106,7 +107,8 @@ func newGetContextCommand() *cobra.Command {
 			} else {
 				// if no context name is given, find all groups and render the result
 				match := contextClient.List()
-				err = contextClient.Print(match)
+				printer := contextClient.BuildTablePrinter(match)
+				err = printer.Render()
 				if err != nil {
 					log.Error(err.Error())
 					os.Exit(1)

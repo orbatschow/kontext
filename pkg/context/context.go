@@ -107,7 +107,7 @@ func (c *Client) Set(contextName string) error {
 	return nil
 }
 
-func (c *Client) Print(contexts map[string]*api.Context) error {
+func (c *Client) BuildTablePrinter(contexts map[string]*api.Context) *pterm.TablePrinter {
 	table := pterm.TableData{
 		{"Active", "Name", "Cluster", "AuthInfo"},
 	}
@@ -120,9 +120,5 @@ func (c *Client) Print(contexts map[string]*api.Context) error {
 			active, key, value.Cluster, value.AuthInfo,
 		})
 	}
-	err := pterm.DefaultTable.WithHasHeader().WithData(table).Render()
-	if err != nil {
-		return fmt.Errorf("failed to print table, err: '%w", err)
-	}
-	return nil
+	return pterm.DefaultTable.WithHasHeader().WithData(table)
 }

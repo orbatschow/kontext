@@ -5,8 +5,10 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/state"
+	"github.com/pterm/pterm"
 	"k8s.io/client-go/tools/clientcmd/api"
 )
 
@@ -268,10 +270,11 @@ func Test_Print(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
+		want    *pterm.TablePrinter
 		wantErr bool
 	}{
 		{
-			name: "should print without an error",
+			name: "should print two contexts, one of them being active",
 			args: args{
 				State: &state.State{
 					Context: state.Context{
@@ -283,24 +286,76 @@ func Test_Print(t *testing.T) {
 					"local": {},
 				},
 			},
-			wantErr: false,
-		},
-		{
-			name: "should print without an error, even when there is context",
-			args: args{
-				State:    &state.State{},
-				Contexts: map[string]*api.Context{},
+			want: &pterm.TablePrinter{
+				Style: &pterm.Style{
+					pterm.FgDefault,
+				},
+				HasHeader: true,
+				HeaderStyle: &pterm.Style{
+					pterm.FgLightCyan,
+				},
+				HeaderRowSeparator: "",
+				HeaderRowSeparatorStyle: &pterm.Style{
+					pterm.FgGray,
+				},
+				Separator: " | ",
+				SeparatorStyle: &pterm.Style{
+					pterm.FgGray,
+				},
+				RowSeparator: "",
+				RowSeparatorStyle: &pterm.Style{
+					pterm.FgGray,
+				},
+				Data: pterm.TableData{
+					[]string{"Active", "Name", "Cluster", "AuthInfo"},
+					[]string{"", "kind", "", ""},
+					[]string{"*", "local", "", ""},
+				},
+				Boxed:          false,
+				LeftAlignment:  true,
+				RightAlignment: false,
+				Writer:         nil,
 			},
 			wantErr: false,
 		},
 		{
-			name: "should print without an error, even when there is no active context",
+			name: "should print two contexts, none of them being active",
 			args: args{
 				State: &state.State{},
 				Contexts: map[string]*api.Context{
 					"kind":  {},
 					"local": {},
 				},
+			},
+			want: &pterm.TablePrinter{
+				Style: &pterm.Style{
+					pterm.FgDefault,
+				},
+				HasHeader: true,
+				HeaderStyle: &pterm.Style{
+					pterm.FgLightCyan,
+				},
+				HeaderRowSeparator: "",
+				HeaderRowSeparatorStyle: &pterm.Style{
+					pterm.FgGray,
+				},
+				Separator: " | ",
+				SeparatorStyle: &pterm.Style{
+					pterm.FgGray,
+				},
+				RowSeparator: "",
+				RowSeparatorStyle: &pterm.Style{
+					pterm.FgGray,
+				},
+				Data: pterm.TableData{
+					[]string{"Active", "Name", "Cluster", "AuthInfo"},
+					[]string{"", "kind", "", ""},
+					[]string{"", "local", "", ""},
+				},
+				Boxed:          false,
+				LeftAlignment:  true,
+				RightAlignment: false,
+				Writer:         nil,
 			},
 			wantErr: false,
 		},
@@ -311,9 +366,11 @@ func Test_Print(t *testing.T) {
 				State: tt.args.State,
 			}
 
-			err := client.Print(tt.args.Contexts)
-			if !tt.wantErr && err != nil {
-				t.Errorf("err: '%v'", err)
+			got := client.BuildTablePrinter(tt.args.Contexts)
+			options := cmpopts.IgnoreUnexported(pterm.InteractiveSelectPrinter{})
+			if !cmp.Equal(&tt.want, &got, options) {
+				diff := cmp.Diff(tt.want, got, options)
+				t.Errorf("context.BuildTablePrinter() state mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
