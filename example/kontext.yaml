@@ -1,6 +1,5 @@
 # global configuration options
 global:
-
   # target kubeconfig file for kontext, all sources will be merged into this file
   # will be replaced each time a group/context is set
   # see .backup for backup/restore options
@@ -18,7 +17,7 @@ global:
 # state configuration options
 state:
   # override the default state file path
-  path: $HOME/.local/state/kontext/state.json
+  file: $HOME/.local/state/kontext/state.json
 
 # backup configuration settings
 # backup targets:
