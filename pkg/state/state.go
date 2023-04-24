@@ -74,7 +74,7 @@ func Read(config *config.Config) (*State, error) {
 
 	// load the state file into koanf
 	if err := instance.Load(file.Provider(config.State.File), yaml.Parser()); err != nil {
-		return nil, fmt.Errorf("failed to load config file, expected file at '%s'", config.State.File)
+		return nil, err
 	}
 
 	// unmarshal the state file into struct

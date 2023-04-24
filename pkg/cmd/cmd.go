@@ -12,8 +12,9 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "kontext",
-	Short: "manage kubernetes config files, contexts, groups and sources",
+	Use:    "kontext",
+	Short:  "manage kubernetes config files, contexts, groups and sources",
+	PreRun: set.Init,
 	Run: func(cmd *cobra.Command, args []string) {
 		isVersionFlagSet := cmd.Flags().Lookup("version").Changed
 		if isVersionFlagSet {
