@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -102,7 +101,7 @@ func (r *Client) Read() (*Config, error) {
 
 	// load configuration with into koanf
 	if err := instance.Load(file.Provider(r.File), yaml.Parser()); err != nil {
-		return nil, fmt.Errorf("failed to load config file, expected file at '%s'", r.File)
+		return nil, err
 	}
 
 	// set default values
