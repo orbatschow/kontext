@@ -35,20 +35,25 @@ func (c *Client) buildInteractiveSelectPrinter() (*pterm.InteractiveSelectPrinte
 		sort.Strings(keys)
 	}
 
-	// set the default selection option
-	if len(group.Context.Selection.Default) > 0 {
+	selector := pterm.DefaultInteractiveSelect.
+		WithMaxHeight(MaxSelectHeight).
+		WithOptions(keys)
+
+	// check if there are defaults for the selection and set them accordingly
+	switch group.Context.Selection.Default {
+	// if the default is empty, return without setting default option
+	case "":
+		return selector, nil
+	// if the default select is "-", set the current context as the default option
+	case "-":
+		return selector.WithDefaultOption(c.State.Context.Active), nil
+	// search for the given default selection context
+	default:
 		// get the default selection context
 		_, ok := c.APIConfig.Contexts[group.Context.Selection.Default]
 		if !ok {
 			return nil, fmt.Errorf("could not find default selection context: '%s'", group.Context.Selection.Default)
 		}
-
-		return pterm.DefaultInteractiveSelect.
-			WithMaxHeight(MaxSelectHeight).
-			WithOptions(keys).
-			WithDefaultOption(group.Context.Selection.Default), nil
+		return selector.WithDefaultOption(group.Context.Selection.Default), nil
 	}
-	return pterm.DefaultInteractiveSelect.
-		WithMaxHeight(MaxSelectHeight).
-		WithOptions(keys), nil
 }

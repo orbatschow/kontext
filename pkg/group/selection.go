@@ -25,8 +25,20 @@ func (c *Client) buildInteractiveSelectPrinter() (*pterm.InteractiveSelectPrinte
 		sort.Sort(sort.Reverse(sort.StringSlice(keys)))
 	}
 
-	// set the default selection option
-	if len(c.Config.Group.Selection.Default) > 0 {
+	selector := pterm.DefaultInteractiveSelect.
+		WithMaxHeight(MaxSelectHeight).
+		WithOptions(keys)
+
+	// check if there are defaults for the selection and set them accordingly
+	switch c.Config.Group.Selection.Default {
+	// if the default is empty, return without setting default option
+	case "":
+		return selector, nil
+	// if the default select is "-", set the current group as the default selection option
+	case "-":
+		return selector.WithDefaultOption(c.State.Group.Active), nil
+	// search for the given default selection group
+	default:
 		// get the default selection group
 		_, ok := lo.Find(c.Config.Group.Items, func(item config.GroupItem) bool {
 			return item.Name == c.Config.Group.Selection.Default
@@ -35,12 +47,6 @@ func (c *Client) buildInteractiveSelectPrinter() (*pterm.InteractiveSelectPrinte
 			return nil, fmt.Errorf("could not find default selection group: '%s'", c.State.Group.Active)
 		}
 
-		return pterm.DefaultInteractiveSelect.
-			WithMaxHeight(MaxSelectHeight).
-			WithOptions(keys).
-			WithDefaultOption(c.Config.Group.Selection.Default), nil
+		return selector.WithDefaultOption(c.Config.Group.Selection.Default), nil
 	}
-	return pterm.DefaultInteractiveSelect.
-		WithMaxHeight(MaxSelectHeight).
-		WithOptions(keys), nil
 }

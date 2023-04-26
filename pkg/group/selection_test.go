@@ -205,6 +205,56 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "should return a printer, that sets the default selection to the active group",
+			args: args{
+				Config: &config.Config{
+					Group: config.Group{
+						Selection: config.Selection{
+							Default: "-",
+						},
+						Items: []config.GroupItem{
+							{
+								Name: "group-a",
+							},
+							{
+								Name: "group-b",
+							},
+							{
+								Name: "group-c",
+							},
+						},
+					},
+				},
+				State: &state.State{
+					Group: state.Group{
+						Active: "group-b",
+					},
+				},
+			},
+			want: &pterm.InteractiveSelectPrinter{
+				TextStyle: &pterm.Style{
+					pterm.FgLightCyan,
+				},
+				DefaultText: "Please select an option",
+				Options: []string{
+					"group-a",
+					"group-b",
+					"group-c",
+				},
+				OptionStyle: &pterm.Style{
+					pterm.FgDefault,
+					pterm.BgDefault,
+				},
+				DefaultOption: "group-b",
+				MaxHeight:     MaxSelectHeight,
+				Selector:      ">",
+				SelectorStyle: &pterm.Style{
+					pterm.FgLightMagenta,
+				},
+			},
+			wantErr: false,
+		},
+		{
 			name: "should throw an error, as the default selection group does not exist",
 			args: args{
 				Config: &config.Config{
