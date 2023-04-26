@@ -232,6 +232,64 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "should return a printer, that sets the default selection to the current context",
+			args: args{
+				APIConfig: &api.Config{
+					Contexts: map[string]*api.Context{
+						"kind-b": nil,
+						"kind-c": nil,
+						"kind-a": nil,
+					},
+					CurrentContext: "kind-b",
+				},
+				Config: &config.Config{
+					Group: config.Group{
+						Items: []config.GroupItem{
+							{
+								Name: "group-a",
+								Context: config.Context{
+									Selection: config.Selection{
+										Default: "-",
+									},
+								},
+							},
+						},
+					},
+				},
+				State: &state.State{
+					Group: state.Group{
+						Active: "group-a",
+					},
+					Context: state.Context{
+						Active: "kind-b",
+					},
+				},
+			},
+			want: &pterm.InteractiveSelectPrinter{
+				TextStyle: &pterm.Style{
+					pterm.FgLightCyan,
+				},
+				DefaultText: "Please select an option",
+				Options: []string{
+					"kind-a",
+					"kind-b",
+					"kind-c",
+				},
+				OptionStyle: &pterm.Style{
+					pterm.FgDefault,
+					pterm.BgDefault,
+				},
+				DefaultOption: "kind-b",
+				MaxHeight:     MaxSelectHeight,
+				Selector:      ">",
+				SelectorStyle: &pterm.Style{
+					pterm.FgLightMagenta,
+				},
+			},
+			wantErr: false,
+		},
+
+		{
 			name: "should return an error, as the default selection context does not exist",
 			args: args{
 				APIConfig: &api.Config{},
