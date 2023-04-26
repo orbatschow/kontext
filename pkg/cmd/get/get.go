@@ -63,7 +63,8 @@ func newGetGroupCommand() *cobra.Command {
 				groups = groupClient.Config.Group.Items
 			}
 
-			err = groupClient.Print(groups...)
+			printer := groupClient.BuildTablePrinter(groups...)
+			err = printer.Render()
 			if err != nil {
 				log.Error(err.Error())
 				os.Exit(1)

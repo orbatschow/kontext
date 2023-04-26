@@ -14,7 +14,7 @@ func (c *Client) BuildTablePrinter(contexts map[string]*api.Context) *pterm.Tabl
 
 	// sort table data ascending
 	var keys []string
-	for key, _ := range contexts {
+	for key := range contexts {
 		keys = append(keys, key)
 	}
 	sort.Strings(keys)

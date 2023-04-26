@@ -3,18 +3,43 @@ package source
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/logger"
 	"github.com/orbatschow/kontext/pkg/utils/glob"
+	"github.com/pterm/pterm"
 	"github.com/samber/lo"
 )
 
+// ComputeFiles computes the target files for the given SourceItem
+// 1. compute all include globs and remove possible duplicates
+// 2. compute all exclude globs and remove possible duplicates
+// 3. build the difference for included and excluded files and return the result
 func ComputeFiles(source *config.SourceItem) ([]*os.File, error) {
 	log := logger.New()
 	var buffer []*os.File
 
-	// add all file globs from source.Include
+	log.Info("computing files for source item", log.Args("name", source.Name))
+
+	includes, err := computeIncludes(source)
+	if err != nil {
+		return nil, err
+	}
+	excludes, err := computeExcludes(source)
+	if err != nil {
+		return nil, err
+	}
+
+	buffer, _ = difference(includes, excludes)
+
+	return buffer, nil
+}
+
+func computeIncludes(source *config.SourceItem) ([]*os.File, error) {
+	log := logger.New()
+	var buffer []*os.File
+
 	for _, include := range source.Include {
 		log.Info("expanding include glob", log.Args("glob", include))
 
@@ -24,43 +49,78 @@ func ComputeFiles(source *config.SourceItem) ([]*os.File, error) {
 		}
 		buffer = append(buffer, matches...)
 
-		// TODO: replace with print function, that prints a table
-		// log.Info("found matching buffer", log.ArgsFromMap(computeFileMap(matches)))
+		log.Info("matched files:", lo.Map(matches, func(item *os.File, index int) pterm.LoggerArgument {
+			return pterm.LoggerArgument{
+				Key:   strconv.Itoa(index),
+				Value: item.Name(),
+			}
+		}))
 	}
 
 	// remove duplicates
 	buffer = lo.UniqBy(buffer, func(item *os.File) string {
 		return item.Name()
 	})
-	// TODO: replace with print function, that prints a table
-	// log.Info("computed kubeconfig buffer without duplicates", log.ArgsFromMap(computeFileMap(buffer)))
 
-	// remove all file globs from source.Exclude
-	for _, exclude := range source.Exclude {
-		log.Warn("expanding exclude glob", log.Args("glob", exclude))
+	return buffer, nil
+}
+
+func computeExcludes(sourceItem *config.SourceItem) ([]*os.File, error) {
+	log := logger.New()
+	var buffer []*os.File
+
+	for _, exclude := range sourceItem.Exclude {
+		log.Info("expanding exclude glob", log.Args("glob", exclude))
 
 		matches, err := glob.Expand(glob.Pattern(exclude))
 		if err != nil {
 			return nil, fmt.Errorf("could not compute glob, err: '%w'", err)
 		}
 
-		for i, file := range buffer {
-			_, ok := lo.Find(matches, func(item *os.File) bool {
-				return item.Name() == file.Name()
-			})
+		buffer = append(buffer, matches...)
 
-			if ok {
-				buffer[i] = nil
+		log.Info("matched files:", lo.Map(matches, func(item *os.File, index int) pterm.LoggerArgument {
+			return pterm.LoggerArgument{
+				Key:   strconv.Itoa(index),
+				Value: item.Name(),
 			}
-		}
-
-		buffer = lo.Without(buffer, nil)
-
-		// TODO: replace with print function, that prints a table
-		// log.Warn("found matching buffer", log.ArgsFromMap(computeFileMap(matches)))
+		}))
 	}
 
-	// TODO: replace with print function, that prints a table
-	// log.Info("computed final kubeconfig buffer", log.ArgsFromMap(computeFileMap(buffer)))
+	// remove duplicates
+	buffer = lo.UniqBy(buffer, func(item *os.File) string {
+		return item.Name()
+	})
+
 	return buffer, nil
+}
+
+func difference(includes []*os.File, excludes []*os.File) ([]*os.File, []*os.File) {
+	var left []*os.File
+	var right []*os.File
+
+	seenLeft := map[string]struct{}{}
+	seenRight := map[string]struct{}{}
+
+	for _, elem := range includes {
+		seenLeft[elem.Name()] = struct{}{}
+	}
+
+	for _, elem := range excludes {
+		seenRight[elem.Name()] = struct{}{}
+	}
+
+	for _, elem := range includes {
+		if _, ok := seenRight[elem.Name()]; !ok {
+			left = append(left, elem)
+		}
+	}
+
+	for _, elem := range excludes {
+		if _, ok := seenLeft[elem.Name()]; !ok {
+			right = append(right, elem)
+		}
+	}
+
+	return left, right
 }
