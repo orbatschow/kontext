@@ -311,7 +311,7 @@ func Test_difference(t *testing.T) {
 				t.Errorf("expected error, err: '%v'", err)
 			}
 
-			got, _ := difference(includes, excludes)
+			got := difference(includes, excludes)
 
 			gotNames := lo.Map(got, func(item *os.File, index int) string {
 				return item.Name()

@@ -31,7 +31,7 @@ func ComputeFiles(source *config.SourceItem) ([]*os.File, error) {
 		return nil, err
 	}
 
-	buffer, _ = difference(includes, excludes)
+	buffer = difference(includes, excludes)
 
 	return buffer, nil
 }
@@ -95,9 +95,8 @@ func computeExcludes(sourceItem *config.SourceItem) ([]*os.File, error) {
 	return buffer, nil
 }
 
-func difference(includes []*os.File, excludes []*os.File) ([]*os.File, []*os.File) {
+func difference(includes []*os.File, excludes []*os.File) []*os.File {
 	var left []*os.File
-	var right []*os.File
 
 	seenLeft := map[string]struct{}{}
 	seenRight := map[string]struct{}{}
@@ -116,11 +115,5 @@ func difference(includes []*os.File, excludes []*os.File) ([]*os.File, []*os.Fil
 		}
 	}
 
-	for _, elem := range excludes {
-		if _, ok := seenLeft[elem.Name()]; !ok {
-			right = append(right, elem)
-		}
-	}
-
-	return left, right
+	return left
 }
