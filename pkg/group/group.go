@@ -2,9 +2,7 @@ package group
 
 import (
 	"fmt"
-	"log"
 	"os"
-	"strings"
 
 	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/context"
@@ -12,7 +10,6 @@ import (
 	"github.com/orbatschow/kontext/pkg/logger"
 	"github.com/orbatschow/kontext/pkg/source"
 	"github.com/orbatschow/kontext/pkg/state"
-	"github.com/pterm/pterm"
 	"github.com/samber/lo"
 	"k8s.io/client-go/tools/clientcmd/api"
 )
@@ -148,30 +145,6 @@ func (c *Client) Reload() error {
 	err := c.Set(groupName)
 	if err != nil {
 		return err
-	}
-	return nil
-}
-
-func (c *Client) Print(groups ...config.GroupItem) error {
-	table := pterm.TableData{
-		{"Active", "Name", "Source(s)"},
-	}
-	for _, value := range groups {
-		active := ""
-		if value.Name == c.State.Group.Active {
-			active = "*"
-		}
-		table = append(table, []string{
-			active, value.Name, strings.Join(value.Sources, "\n"),
-		})
-	}
-	// print empty line for better formatting
-	log.Print("")
-
-	// print result table
-	err := pterm.DefaultTable.WithHasHeader().WithData(table).Render()
-	if err != nil {
-		return fmt.Errorf("failed to print table, err: '%w", err)
 	}
 	return nil
 }

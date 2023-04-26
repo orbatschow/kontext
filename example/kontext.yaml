@@ -45,6 +45,7 @@ group:
         default: kind-kind
         selection:
           # make this context the default selected option within the interactive dialogue
+          # note: you can use "-", as a value, to use the active context as the new selection default
           default: kind-kind
           # sort the interactive selection
           # possible values, defaults to asc:
@@ -75,6 +76,7 @@ group:
   # interactive selection options for all groups
   selection:
     # make this group the default selected group
+    # note: you can use "-", as a value, to use the active group as the new selection default
     default: dev
     # sort the interactive selection
     # possible values, defaults to asc:
