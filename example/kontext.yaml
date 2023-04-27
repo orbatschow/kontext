@@ -57,7 +57,8 @@ group:
     - name: dev
       # set a default context, that will be activated as soon as you switch to this group
       # note: the context has to be available within this group
-      context: dev-01
+      context: 
+        default: dev-01
       sources:
         - customer-a.dev
         - customer-b.dev
