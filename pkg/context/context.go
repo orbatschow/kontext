@@ -56,7 +56,7 @@ func New() (*Client, error) {
 
 func (c *Client) Get(contextName string) (map[string]*api.Context, error) {
 	log := logger.New()
-	log.Info("getting context", log.Args("name", contextName))
+	log.Debug("getting context", log.Args("name", contextName))
 
 	if len(contextName) == 0 {
 		return nil, fmt.Errorf("given context name is empty")
@@ -74,7 +74,7 @@ func (c *Client) Get(contextName string) (map[string]*api.Context, error) {
 
 func (c *Client) List() map[string]*api.Context {
 	log := logger.New()
-	log.Info("listing contexts")
+	log.Debug("listing contexts")
 
 	return c.APIConfig.Contexts
 }

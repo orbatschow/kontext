@@ -22,9 +22,6 @@ func Init(_ *cobra.Command, _ []string) {
 		log.Fatal(err.Error())
 	}
 
-	// initialize logger
-	logger.Init(currentConfig)
-
 	// initialize state
 	err = state.Init(currentConfig)
 	if err != nil {

@@ -1,19 +1,13 @@
 package logger
 
 import (
-	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/pterm/pterm"
 )
 
-var logger *pterm.Logger
+const DefaultVerbosity = 3
 
-func Init(config *config.Config) {
-	logger = pterm.DefaultLogger.WithLevel(config.Global.Verbosity)
-}
+var Verbosity int
 
 func New() *pterm.Logger {
-	if logger == nil {
-		return pterm.DefaultLogger.WithLevel(pterm.LogLevelTrace)
-	}
-	return logger
+	return pterm.DefaultLogger.WithLevel(pterm.LogLevel(Verbosity))
 }

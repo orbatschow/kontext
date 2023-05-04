@@ -47,7 +47,7 @@ func (r *Reconciler) Reconcile() ([]state.Revision, error) {
 func deleteRevisions(revision state.Revision) error {
 	log := logger.New()
 
-	log.Info("removing backup revision", log.Args("file", revision))
+	log.Trace("removing backup revision", log.Args("file", revision))
 	err := os.Remove(string(revision))
 	if err != nil {
 		return err

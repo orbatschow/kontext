@@ -9,7 +9,6 @@ import (
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/structs"
-	"github.com/pterm/pterm"
 )
 
 var (
@@ -35,8 +34,7 @@ type Config struct {
 }
 
 type Global struct {
-	Kubeconfig string         `json:"kubeconfig,omitempty"`
-	Verbosity  pterm.LogLevel `json:"verbosity,omitempty"`
+	Kubeconfig string `json:"kubeconfig,omitempty"`
 }
 
 // State configuration options
@@ -108,7 +106,6 @@ func (r *Client) Read() (*Config, error) {
 	err := instance.Load(structs.Provider(Config{
 		Global: Global{
 			Kubeconfig: os.Getenv("KUBECONFIG"),
-			Verbosity:  pterm.LogLevelInfo,
 		},
 		Backup: Backup{
 			Enabled:   true,
