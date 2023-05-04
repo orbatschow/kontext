@@ -20,7 +20,7 @@ func ComputeFiles(source *config.SourceItem) ([]*os.File, error) {
 	log := logger.New()
 	var buffer []*os.File
 
-	log.Info("computing files for source item", log.Args("name", source.Name))
+	log.Debug("computing files for source item", log.Args("name", source.Name))
 
 	includes, err := computeIncludes(source)
 	if err != nil {
@@ -41,7 +41,7 @@ func computeIncludes(source *config.SourceItem) ([]*os.File, error) {
 	var buffer []*os.File
 
 	for _, include := range source.Include {
-		log.Info("expanding include glob", log.Args("glob", include))
+		log.Debug("expanding include glob", log.Args("glob", include))
 
 		matches, err := glob.Expand(glob.Pattern(include))
 		if err != nil {
@@ -49,7 +49,7 @@ func computeIncludes(source *config.SourceItem) ([]*os.File, error) {
 		}
 		buffer = append(buffer, matches...)
 
-		log.Info("matched files:", lo.Map(matches, func(item *os.File, index int) pterm.LoggerArgument {
+		log.Debug("matched files:", lo.Map(matches, func(item *os.File, index int) pterm.LoggerArgument {
 			return pterm.LoggerArgument{
 				Key:   strconv.Itoa(index),
 				Value: item.Name(),
@@ -70,7 +70,7 @@ func computeExcludes(sourceItem *config.SourceItem) ([]*os.File, error) {
 	var buffer []*os.File
 
 	for _, exclude := range sourceItem.Exclude {
-		log.Info("expanding exclude glob", log.Args("glob", exclude))
+		log.Debug("expanding exclude glob", log.Args("glob", exclude))
 
 		matches, err := glob.Expand(glob.Pattern(exclude))
 		if err != nil {
@@ -79,7 +79,7 @@ func computeExcludes(sourceItem *config.SourceItem) ([]*os.File, error) {
 
 		buffer = append(buffer, matches...)
 
-		log.Info("matched files:", lo.Map(matches, func(item *os.File, index int) pterm.LoggerArgument {
+		log.Debug("matched files:", lo.Map(matches, func(item *os.File, index int) pterm.LoggerArgument {
 			return pterm.LoggerArgument{
 				Key:   strconv.Itoa(index),
 				Value: item.Name(),

@@ -58,6 +58,8 @@ func (r *Reconciler) Reconcile() error {
 
 // create creates a new backup revision
 func (r *Reconciler) create() (*os.File, error) {
+	log := logger.New()
+
 	file, err := os.Open(r.Config.Global.Kubeconfig)
 	if err != nil {
 		return nil, err
@@ -85,6 +87,7 @@ func (r *Reconciler) create() (*os.File, error) {
 	if err != nil {
 		return nil, err
 	}
+	log.Trace("created new backup", log.Args("file", backupFile.Name()))
 
 	return backupFile, nil
 }

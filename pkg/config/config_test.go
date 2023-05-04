@@ -8,7 +8,6 @@ import (
 
 	"github.com/adrg/xdg"
 	"github.com/google/go-cmp/cmp"
-	"github.com/pterm/pterm"
 )
 
 func Test_Read(t *testing.T) {
@@ -37,7 +36,6 @@ func Test_Read(t *testing.T) {
 			want: &Config{
 				Global: Global{
 					Kubeconfig: filepath.Join(xdg.ConfigHome, "kontext", "kubeconfig.yaml"),
-					Verbosity:  pterm.LogLevelInfo,
 				},
 				Backup: Backup{
 					Enabled: true,
@@ -130,7 +128,6 @@ func Test_Read(t *testing.T) {
 
 						return path
 					}(),
-					Verbosity: pterm.LogLevelInfo,
 				},
 				Backup: Backup{
 					Enabled:   true,
