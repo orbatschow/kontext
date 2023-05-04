@@ -82,4 +82,4 @@ test: generate tparse
 ######################################################
 .PHONY: generate
 generate: clean
-	go generate github.com/orbatschow/kontext/pkg/version
+	go generate github.com/orbatschow/kontext/pkg/cmd/version

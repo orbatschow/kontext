@@ -22,7 +22,7 @@ func Read(file *os.File) (*api.Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not unmarshal kubeconfig, err: '%w'", err)
 	}
-	log.Debug("read kubeconfig")
+	log.Debug("read kubeconfig", log.Args("file", file.Name()))
 
 	return buffer, nil
 }
@@ -51,13 +51,12 @@ func Write(file *os.File, apiConfig *api.Config) error {
 		return err
 	}
 
-	log.Debug("wrote kubeconfig")
+	log.Debug("wrote kubeconfig", log.Args("file", file.Name()))
 	return nil
 }
 
 func Merge(files ...*os.File) (*api.Config, error) {
 	var buffer []string
-	// log := logger.New()
 
 	for _, file := range files {
 		buffer = append(buffer, file.Name())
@@ -71,7 +70,5 @@ func Merge(files ...*os.File) (*api.Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not merge kubeconfig files, err: '%w'", err)
 	}
-	// TODO: replace with print function, that prints a table
-	// log.Info("merged kubeconfig", log.ArgsFromMap(buildFileMap(files)))
 	return matches, nil
 }

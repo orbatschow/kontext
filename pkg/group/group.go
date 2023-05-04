@@ -129,6 +129,8 @@ func (c *Client) Set(groupName string) error {
 		if err != nil {
 			return err
 		}
+	} else {
+		log.Info("switched context", log.Args("context", apiConfig.CurrentContext))
 	}
 
 	// set new api config and modify state
@@ -136,6 +138,7 @@ func (c *Client) Set(groupName string) error {
 	c.State.Group.Active = groupName
 	c.State.Group.History = state.ComputeHistory(c.Config, state.History(groupName), c.State.Group.History)
 
+	log.Info("switched group", log.Args("group", groupName))
 	return nil
 }
 

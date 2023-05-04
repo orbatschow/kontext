@@ -32,6 +32,45 @@ included sources files first and then removes all duplicates. After the include 
 been computed the same happens for all files, that shall be excluded. Take a look at the
 [example](./example/kontext.yaml) to understand sources in depth.
 
+## Usage
+
+```shell
+[I] ➜  kx -h
+manage kubernetes config files, contexts, groups and sources
+
+Usage:
+  kontext [flags]
+  kontext [command]
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  get         get [context|group] [name], defaults to context
+  help        Help about any command
+  reload      reload the active group
+  set         set [context|group] [name]
+  version     version for kontext
+
+Flags:
+  -h, --help            help for kontext
+  -v, --verbosity int   verbose output (default 3)
+
+Use "kontext [command] --help" for more information about a command.
+```
+
+### Verbosity
+
+You can tweak the verbosity by using the following levels:
+
+```shell
+1 -> Trace
+2 -> Debug
+3 -> Info (default)
+4 -> Warn
+5 -> Error
+6 -> Fatal
+7 -> Print
+```
+
 ## Demo
 
 ![Demo](./assets/demo.svg)
