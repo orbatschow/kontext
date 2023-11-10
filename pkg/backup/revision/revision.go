@@ -9,12 +9,14 @@ import (
 	"github.com/samber/lo"
 )
 
+// Reconciler holds the current config, state and a backup file, that shall be created
 type Reconciler struct {
 	Config *config.Config
 	State  *state.State
 	Backup *os.File
 }
 
+// Reconcile creates and deletes backup revisions, according to the configured revision size
 func (r *Reconciler) Reconcile() ([]state.Revision, error) {
 	revisions := r.State.Backup.Revisions
 
@@ -32,7 +34,7 @@ func (r *Reconciler) Reconcile() ([]state.Revision, error) {
 
 	// remove the previously matched conditions
 	for _, revision := range overflow {
-		err := deleteRevisions(revision)
+		err := remove(revision)
 		if err != nil {
 			return nil, err
 		}
@@ -44,7 +46,8 @@ func (r *Reconciler) Reconcile() ([]state.Revision, error) {
 	return revisions, nil
 }
 
-func deleteRevisions(revision state.Revision) error {
+// remove will delete a backup revision file
+func remove(revision state.Revision) error {
 	log := logger.New()
 
 	log.Trace("removing backup revision", log.Args("file", revision))

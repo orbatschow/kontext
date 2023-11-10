@@ -13,9 +13,10 @@ import (
 	"github.com/orbatschow/kontext/pkg/state"
 )
 
+// Filename is used to store the newly computed backup file name
 type Filename string
-type Directory string
 
+// Reconciler holds the current config and state
 type Reconciler struct {
 	Config *config.Config
 	State  *state.State

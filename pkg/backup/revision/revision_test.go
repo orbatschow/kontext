@@ -162,7 +162,7 @@ func Test_reconcileRevisions(t *testing.T) {
 		},
 
 		{
-			name:   "should add a new revision and delete one revision, that exceeds the limit",
+			name:   "should add a new revision and remove one revision, that exceeds the limit",
 			before: before,
 			after:  after,
 			args: args{
@@ -201,7 +201,7 @@ func Test_reconcileRevisions(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:   "should add a new revision and delete multiple revisions, that exceed the limit",
+			name:   "should add a new revision and remove multiple revisions, that exceed the limit",
 			before: before,
 			after:  after,
 			args: args{

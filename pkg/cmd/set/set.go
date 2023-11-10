@@ -11,6 +11,7 @@ import (
 	"github.com/orbatschow/kontext/pkg/kubeconfig"
 	"github.com/orbatschow/kontext/pkg/logger"
 	"github.com/orbatschow/kontext/pkg/state"
+	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 )
 
@@ -125,6 +126,32 @@ func NewSetContextCommand(_ *cobra.Command, args []string) {
 	}
 }
 
+func buildSetContextCommand() *cobra.Command {
+	log := logger.New()
+
+	command := &cobra.Command{
+		Use:   "context [name]",
+		Short: "set context to active",
+		Long: `Invoking this command without a parameter will spawn an interactive selection dialog.
+When providing a context name, the switch will be performed immediately.
+'-' is a reserved context name, that will cause a switch to the previously active context.
+		`,
+		PreRun: Init,
+		Run:    NewSetContextCommand,
+	}
+
+	action, err := buildSetContextAction()
+	if err != nil {
+		log.Error(err.Error())
+		os.Exit(1)
+	}
+	carapace.Gen(command).PositionalAnyCompletion(
+		action,
+	)
+
+	return command
+}
+
 func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set [name]",
@@ -151,19 +178,8 @@ When providing a group name, the switch will be performed immediately.
 		Run:    newSetGroupCommand,
 	}
 
-	setContextCommand := &cobra.Command{
-		Use:   "context [name]",
-		Short: "set context to active",
-		Long: `Invoking this command without a parameter will spawn an interactive selection dialog.
-When providing a context name, the switch will be performed immediately.
-'-' is a reserved context name, that will cause a switch to the previously active context.
-		`,
-		PreRun: Init,
-		Run:    NewSetContextCommand,
-	}
-
 	cmd.AddCommand(setGroupCommand)
-	cmd.AddCommand(setContextCommand)
+	cmd.AddCommand(buildSetContextCommand())
 
 	return cmd
 }
