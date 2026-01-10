@@ -56,7 +56,7 @@ func New() (*Client, error) {
 
 func (c *Client) Get(contextName string) (map[string]*api.Context, error) {
 	log := logger.New()
-	log.Debug("getting context", log.Args("name", contextName))
+	log.Debug("getting context", "name", contextName)
 
 	if len(contextName) == 0 {
 		return nil, fmt.Errorf("given context name is empty")
@@ -107,6 +107,6 @@ func (c *Client) Set(contextName string) error {
 	c.State.Context.Active = contextName
 	c.State.Context.History = state.ComputeHistory(c.Config, state.History(contextName), history)
 
-	log.Info("switched context", log.Args("context", contextName))
+	log.Info("switched context", "context", contextName)
 	return nil
 }

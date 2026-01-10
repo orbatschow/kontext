@@ -30,7 +30,7 @@ its sources and context configuration.`,
 
 			groupClient, err := group.New()
 			if err != nil {
-				log.Error(err.Error())
+				log.Error("failed to create group client", "err", err)
 				os.Exit(1)
 			}
 
@@ -38,7 +38,7 @@ its sources and context configuration.`,
 			if len(groupName) != 0 {
 				match, err := groupClient.Get(groupName)
 				if err != nil {
-					log.Error(err.Error())
+					log.Error("failed to get group", "err", err)
 					os.Exit(1)
 				}
 				groups = append(groups, *match)
@@ -49,7 +49,7 @@ its sources and context configuration.`,
 			printer := groupClient.BuildTablePrinter(groups...)
 			err = printer.Render()
 			if err != nil {
-				log.Error(err.Error())
+				log.Error("failed to render groups", "err", err)
 				os.Exit(1)
 			}
 		},

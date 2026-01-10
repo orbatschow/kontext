@@ -12,7 +12,6 @@ run:
   # Default: 1m
   timeout: 15m
 
-
 # This file contains only configs which differ from defaults.
 # All possible options can be found here https://github.com/golangci/golangci-lint/blob/master/.golangci.reference.yml
 linters-settings:
@@ -83,24 +82,6 @@ linters-settings:
       - prometheus.ExponentialBucketsRange
       - prometheus.LinearBuckets
 
-  gomodguard:
-    blocked:
-      # List of blocked modules.
-      # Default: []
-      modules:
-        - github.com/golang/protobuf:
-            recommendations:
-              - google.golang.org/protobuf
-            reason: "see https://developers.google.com/protocol-buffers/docs/reference/go/faq#modules"
-        - github.com/satori/go.uuid:
-            recommendations:
-              - github.com/google/uuid
-            reason: "satori's package is not maintained"
-        - github.com/gofrs/uuid:
-            recommendations:
-              - github.com/google/uuid
-            reason: "gofrs' package is not go module"
-
   govet:
     # Enable all analyzers.
     # Default: false
@@ -125,7 +106,7 @@ linters-settings:
   nolintlint:
     # Exclude following linters from requiring an explanation.
     # Default: []
-    allow-no-explanation: [ funlen, gocognit, lll ]
+    allow-no-explanation: [funlen, gocognit, lll]
     # Enable to require an explanation of nonzero length after each nolint directive.
     # Default: false
     require-explanation: true
@@ -144,7 +125,6 @@ linters-settings:
     # Otherwise, only methods that take `*testing.T`, `*testing.B`, and `testing.TB` as arguments are checked.
     # Default: false
     all: true
-
 
 linters:
   disable-all: true
@@ -180,7 +160,6 @@ linters:
     - goimports # in addition to fixing imports, goimports also formats your code in the same style as gofmt
     - gomnd # detects magic numbers
     - gomoddirectives # manages the use of 'replace', 'retract', and 'excludes' directives in go.mod
-    - gomodguard # allow and block lists linter for direct Go module dependencies. This is different from depguard where there are different block types for example version constraints and module recommendations
     - goprintffuncname # checks that printf-like functions are named with f at the end
     - gosec # inspects source code for security problems
     - lll # reports long lines
@@ -255,7 +234,6 @@ linters:
     #- structcheck # [deprecated, replaced by unused] finds unused struct fields
     #- varcheck # [deprecated, replaced by unused] finds unused global variables and constants
 
-
 issues:
   # Maximum count of issues with the same text.
   # Set to 0 to disable.
@@ -264,15 +242,15 @@ issues:
 
   exclude-rules:
     - text: 'shadow: declaration of "(err|ctx|ok)" shadows declaration at'
-      linters: [ govet ]
+      linters: [govet]
     - source: "^//\\s*go:generate\\s"
-      linters: [ lll ]
+      linters: [lll]
     - source: "(noinspection|TODO)"
-      linters: [ godot ]
+      linters: [godot]
     - source: "//noinspection"
-      linters: [ gocritic ]
+      linters: [gocritic]
     - source: "^\\s+if _, ok := err\\.\\([^.]+\\.InternalError\\); ok {"
-      linters: [ errorlint ]
+      linters: [errorlint]
     - path: "_test\\.go"
       linters:
         - bodyclose
@@ -282,3 +260,4 @@ issues:
         - gosec
         - noctx
         - wrapcheck
+

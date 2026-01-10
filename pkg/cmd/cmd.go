@@ -21,7 +21,11 @@ into groups and providing quick switching between contexts and clusters.`,
 }
 
 func init() {
-	rootCmd.PersistentFlags().IntVarP(&logger.Verbosity, "verbosity", "v", logger.DefaultVerbosity, "verbose output")
+	rootCmd.PersistentFlags().IntVarP(&logger.Verbosity, "verbosity", "v", logger.DefaultVerbosity, `log level (1-4)
+  1 - DEBUG
+  2 - INFO (default)
+  3 - WARN
+  4 - ERROR`)
 }
 
 func Execute() {

@@ -57,20 +57,6 @@ Flags:
 Use "kontext [command] --help" for more information about a command.
 ```
 
-### Verbosity
-
-You can tweak the verbosity by using the following levels:
-
-```shell
-1 -> Trace
-2 -> Debug
-3 -> Info (default)
-4 -> Warn
-5 -> Error
-6 -> Fatal
-7 -> Print
-```
-
 ## Demo
 
 ![Demo](./assets/demo.svg)
