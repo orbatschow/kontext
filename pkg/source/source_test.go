@@ -78,10 +78,10 @@ func Test_ComputeFiles(t *testing.T) {
 				t.Errorf("expected error, err: '%v'", err)
 			}
 
-			gotNames := lo.Map(got, func(item *os.File, index int) string {
+			gotNames := lo.Map(got, func(item *os.File, _ int) string {
 				return item.Name()
 			})
-			wantNames := lo.Map(tt.want, func(item *os.File, index int) string {
+			wantNames := lo.Map(tt.want, func(item *os.File, _ int) string {
 				return item.Name()
 			})
 
@@ -155,10 +155,10 @@ func Test_computeIncludes(t *testing.T) {
 				t.Errorf("expected error, err: '%v'", err)
 			}
 
-			gotNames := lo.Map(got, func(item *os.File, index int) string {
+			gotNames := lo.Map(got, func(item *os.File, _ int) string {
 				return item.Name()
 			})
-			wantNames := lo.Map(tt.want, func(item *os.File, index int) string {
+			wantNames := lo.Map(tt.want, func(item *os.File, _ int) string {
 				return item.Name()
 			})
 
@@ -229,10 +229,10 @@ func Test_computeExcludes(t *testing.T) {
 				t.Errorf("expected error, err: '%v'", err)
 			}
 
-			gotNames := lo.Map(got, func(item *os.File, index int) string {
+			gotNames := lo.Map(got, func(item *os.File, _ int) string {
 				return item.Name()
 			})
-			wantNames := lo.Map(tt.want, func(item *os.File, index int) string {
+			wantNames := lo.Map(tt.want, func(item *os.File, _ int) string {
 				return item.Name()
 			})
 
@@ -313,10 +313,10 @@ func Test_difference(t *testing.T) {
 
 			got := difference(includes, excludes)
 
-			gotNames := lo.Map(got, func(item *os.File, index int) string {
+			gotNames := lo.Map(got, func(item *os.File, _ int) string {
 				return item.Name()
 			})
-			wantNames := lo.Map(tt.want, func(item *os.File, index int) string {
+			wantNames := lo.Map(tt.want, func(item *os.File, _ int) string {
 				return item.Name()
 			})
 

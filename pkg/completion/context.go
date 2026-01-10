@@ -6,7 +6,7 @@ import (
 )
 
 func Context() carapace.Action {
-	return carapace.ActionCallback(func(c carapace.Context) carapace.Action {
+	return carapace.ActionCallback(func(_ carapace.Context) carapace.Action {
 		client, err := context.New()
 		if err != nil {
 			return carapace.ActionMessage(err.Error())

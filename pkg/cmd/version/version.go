@@ -37,7 +37,7 @@ func NewCommand() *cobra.Command {
 		Use:   "version",
 		Short: "Display version information",
 		Long:  `Show the current version of kontext.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			pterm.Println(compute())
 		},
 	}

@@ -133,7 +133,7 @@ func Test_Write(t *testing.T) {
 		{
 			name: "should throw an error due to missing config",
 			args: args{
-				config: func(tmpFile *os.File) *config.Config {
+				config: func(_ *os.File) *config.Config {
 					kontextConfig := &config.Config{
 						Global: config.Global{
 							Kubeconfig: "",

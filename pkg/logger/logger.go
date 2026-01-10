@@ -7,7 +7,7 @@ import (
 
 const DefaultVerbosity = 2
 
-var Verbosity int = DefaultVerbosity
+var Verbosity = DefaultVerbosity
 
 // New creates a new slog.Logger with the configured verbosity level.
 // Verbosity maps directly to slog levels:

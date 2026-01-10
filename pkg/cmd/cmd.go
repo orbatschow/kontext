@@ -3,13 +3,13 @@ package cmd
 import (
 	"os"
 
+	"github.com/carapace-sh/carapace"
 	"github.com/orbatschow/kontext/pkg/cmd/get"
 	"github.com/orbatschow/kontext/pkg/cmd/reload"
 	"github.com/orbatschow/kontext/pkg/cmd/set"
 	"github.com/orbatschow/kontext/pkg/cmd/version"
 	"github.com/orbatschow/kontext/pkg/logger"
 	"github.com/pterm/pterm"
-	"github.com/carapace-sh/carapace"
 	"github.com/spf13/cobra"
 )
 

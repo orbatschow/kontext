@@ -25,7 +25,7 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 			name: "should return a printer, that sorts the given group as they are given",
 			args: args{
 				Config: &config.Config{
-					Group: config.Group{
+					Groups: config.Group{
 						Items: []config.GroupItem{
 							{
 								Name: "group-b",
@@ -68,7 +68,7 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 			name: "should return a printer, that sorts the given group ascending",
 			args: args{
 				Config: &config.Config{
-					Group: config.Group{
+					Groups: config.Group{
 						Selection: config.Selection{
 							Sort: SortAsc,
 						},
@@ -115,7 +115,7 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 			name: "should return a printer, that sorts the given group descending",
 			args: args{
 				Config: &config.Config{
-					Group: config.Group{
+					Groups: config.Group{
 						Selection: config.Selection{
 							Sort: SortDesc,
 						},
@@ -161,7 +161,7 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 			name: "should return a printer, that sorts the given group descending and set a default",
 			args: args{
 				Config: &config.Config{
-					Group: config.Group{
+					Groups: config.Group{
 						Selection: config.Selection{
 							Sort:    SortDesc,
 							Default: "group-c",
@@ -208,7 +208,7 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 			name: "should return a printer, that sets the default selection to the active group",
 			args: args{
 				Config: &config.Config{
-					Group: config.Group{
+					Groups: config.Group{
 						Selection: config.Selection{
 							Default: "-",
 						},
@@ -258,7 +258,7 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 			name: "should throw an error, as the default selection group does not exist",
 			args: args{
 				Config: &config.Config{
-					Group: config.Group{
+					Groups: config.Group{
 						Selection: config.Selection{
 							Default: "dev",
 						},
