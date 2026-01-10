@@ -26,7 +26,11 @@ func init_(_ *cobra.Command, _ []string) {
 func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get",
-		Short: "get [context|group] [name], defaults to context",
+		Short: "Display contexts and groups",
+		Long: `List or display details about contexts and groups.
+
+Without arguments, shows available contexts. Use subcommands to list groups or
+filter by name.`,
 	}
 
 	cmd.AddCommand(newGroupCommand())

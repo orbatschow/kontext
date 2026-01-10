@@ -13,7 +13,10 @@ import (
 func newContextCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:    "context [name]",
-		Short:  "get contexts, optionally filtered by name",
+		Short:  "List contexts from the active group",
+		Long: `List all Kubernetes contexts available in the currently active group.
+
+If a context name is provided, display detailed information about that specific context.`,
 		PreRun: init_,
 		Run: func(cmd *cobra.Command, args []string) {
 			log := logger.New()

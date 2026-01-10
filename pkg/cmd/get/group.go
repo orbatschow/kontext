@@ -14,7 +14,11 @@ import (
 func newGroupCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:    "group [name]",
-		Short:  "get groups, optionally filtered by name",
+		Short:  "List or display configured groups",
+		Long: `List all configured groups with their source configurations.
+
+If a group name is provided, display detailed information about that specific group including
+its sources and context configuration.`,
 		PreRun: init_,
 		Run: func(cmd *cobra.Command, args []string) {
 			log := logger.New()

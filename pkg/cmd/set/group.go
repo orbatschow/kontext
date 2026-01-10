@@ -54,11 +54,13 @@ func runSetGroup(_ *cobra.Command, args []string) {
 func newGroupCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "group [name]",
-		Short: "set group to active",
-		Long: `Invoking this command without a parameter will spawn an interactive selection dialog.
-When providing a group name, the switch will be performed immediately.
-'-' is a reserved group name, that will cause a switch to the previously active group.
-		`,
+		Short: "Switch to a different group",
+		Long: `Change the active group and merge its source kubeconfigs.
+
+Without a name, opens an interactive selection dialog showing all configured groups.
+With a name, immediately switches to that group and merges all its source kubeconfigs.
+
+Use '-' as the group name to switch back to the previously active group.`,
 		PreRun: init_,
 		Run:    runSetGroup,
 	}
