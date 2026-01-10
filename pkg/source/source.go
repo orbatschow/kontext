@@ -3,12 +3,10 @@ package source
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/orbatschow/kontext/pkg/config"
 	"github.com/orbatschow/kontext/pkg/logger"
 	"github.com/orbatschow/kontext/pkg/utils/glob"
-	"github.com/pterm/pterm"
 	"github.com/samber/lo"
 )
 
@@ -20,7 +18,7 @@ func ComputeFiles(source *config.SourceItem) ([]*os.File, error) {
 	log := logger.New()
 	var buffer []*os.File
 
-	log.Debug("computing files for source item", log.Args("name", source.Name))
+	log.Debug("computing files for source item", "name", source.Name)
 
 	includes, err := computeIncludes(source)
 	if err != nil {
@@ -41,7 +39,7 @@ func computeIncludes(source *config.SourceItem) ([]*os.File, error) {
 	var buffer []*os.File
 
 	for _, include := range source.Include {
-		log.Debug("expanding include glob", log.Args("glob", include))
+		log.Debug("expanding include glob", "glob", include)
 
 		matches, err := glob.Expand(glob.Pattern(include))
 		if err != nil {
@@ -49,12 +47,11 @@ func computeIncludes(source *config.SourceItem) ([]*os.File, error) {
 		}
 		buffer = append(buffer, matches...)
 
-		log.Debug("matched files:", lo.Map(matches, func(item *os.File, index int) pterm.LoggerArgument {
-			return pterm.LoggerArgument{
-				Key:   strconv.Itoa(index),
-				Value: item.Name(),
-			}
-		}))
+		// Log matched file names for debugging
+		fileNames := lo.Map(matches, func(f *os.File, _ int) string {
+			return f.Name()
+		})
+		log.Debug("matched files", "pattern", include, "files", fileNames)
 	}
 
 	// remove duplicates
@@ -70,7 +67,7 @@ func computeExcludes(sourceItem *config.SourceItem) ([]*os.File, error) {
 	var buffer []*os.File
 
 	for _, exclude := range sourceItem.Exclude {
-		log.Debug("expanding exclude glob", log.Args("glob", exclude))
+		log.Debug("expanding exclude glob", "glob", exclude)
 
 		matches, err := glob.Expand(glob.Pattern(exclude))
 		if err != nil {
@@ -79,12 +76,11 @@ func computeExcludes(sourceItem *config.SourceItem) ([]*os.File, error) {
 
 		buffer = append(buffer, matches...)
 
-		log.Debug("matched files:", lo.Map(matches, func(item *os.File, index int) pterm.LoggerArgument {
-			return pterm.LoggerArgument{
-				Key:   strconv.Itoa(index),
-				Value: item.Name(),
-			}
-		}))
+		// Log matched file names for debugging
+		fileNames := lo.Map(matches, func(f *os.File, _ int) string {
+			return f.Name()
+		})
+		log.Debug("matched files", "pattern", exclude, "files", fileNames)
 	}
 
 	// remove duplicates

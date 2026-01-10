@@ -27,20 +27,20 @@ If a context name is provided, display detailed information about that specific 
 
 			contextClient, err := context.New()
 			if err != nil {
-				log.Error(err.Error())
+				log.Error("failed to create context client", "err", err)
 				os.Exit(1)
 			}
 
 			if len(contextName) != 0 {
 				match, err := contextClient.Get(contextName)
 				if err != nil {
-					log.Error(err.Error())
+					log.Error("failed to get context", "err", err)
 					os.Exit(1)
 				}
 				printer := contextClient.BuildTablePrinter(match)
 				err = printer.Render()
 				if err != nil {
-					log.Error(err.Error())
+					log.Error("failed to render contexts", "err", err)
 					os.Exit(1)
 				}
 			} else {
@@ -48,7 +48,7 @@ If a context name is provided, display detailed information about that specific 
 				printer := contextClient.BuildTablePrinter(match)
 				err = printer.Render()
 				if err != nil {
-					log.Error(err.Error())
+					log.Error("failed to render contexts", "err", err)
 					os.Exit(1)
 				}
 			}

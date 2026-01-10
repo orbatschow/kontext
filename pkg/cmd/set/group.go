@@ -23,30 +23,30 @@ func runSetGroup(_ *cobra.Command, args []string) {
 
 	client, err := group.New()
 	if err != nil {
-		log.Error(err.Error())
+		log.Error("failed to create group client", "err", err)
 		os.Exit(1)
 	}
 
 	err = client.Set(groupName)
 	if err != nil {
-		log.Error(err.Error())
+		log.Error("failed to set group", "err", err)
 		os.Exit(1)
 	}
 
 	file, err := os.OpenFile(client.Config.Global.Kubeconfig, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
-		log.Error(err.Error())
+		log.Error("failed to open kubeconfig file", "err", err)
 		os.Exit(1)
 	}
 	err = kubeconfig.Write(file, client.APIConfig)
 	if err != nil {
-		log.Error(err.Error())
+		log.Error("failed to write kubeconfig", "err", err)
 		os.Exit(1)
 	}
 
 	err = state.Write(client.Config, client.State)
 	if err != nil {
-		log.Error(err.Error())
+		log.Error("failed to write state", "err", err)
 		os.Exit(1)
 	}
 }

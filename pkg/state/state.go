@@ -41,7 +41,7 @@ func Init(config *config.Config) error {
 		return nil
 	}
 
-	log.Debug("missing state file, creating now", log.Args("path", config.State.File))
+	log.Debug("missing state file, creating now", "path", config.State.File)
 
 	// create state directory
 	baseStateDirectory, _ := filepath.Split(config.State.File)
@@ -75,7 +75,7 @@ func Read(config *config.Config) (*State, error) {
 	if err := instance.UnmarshalWithConf("", &state, koanf.UnmarshalConf{Tag: "json"}); err != nil {
 		return nil, fmt.Errorf("could not unmarshal state, err: '%w'", err)
 	}
-	log.Trace("read state file", log.Args("path", config.State.File))
+	log.Debug("read state file", "path", config.State.File)
 
 	return state, nil
 }
@@ -90,14 +90,14 @@ func Write(config *config.Config, state *State) error {
 		return err
 	}
 
-	log.Trace("updating state", log.Args("data", string(buffer)))
+	log.Debug("updating state", "data", string(buffer))
 
 	// write the state into the state file
 	err = os.WriteFile(config.State.File, buffer, 0600)
 	if err != nil {
 		return fmt.Errorf("could not write state to file, err: '%w'", err)
 	}
-	log.Trace("finished updating state")
+	log.Debug("finished updating state")
 
 	return nil
 }

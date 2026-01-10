@@ -1,25 +1,29 @@
 package set
 
 import (
-	"log"
+	"os"
 
 	"github.com/orbatschow/kontext/pkg/config"
+	"github.com/orbatschow/kontext/pkg/logger"
 	"github.com/orbatschow/kontext/pkg/state"
 	"github.com/spf13/cobra"
 )
 
 func init_(_ *cobra.Command, _ []string) {
+	log := logger.New()
 	configClient := &config.Client{
 		File: config.DefaultConfigPath,
 	}
 	currentConfig, err := configClient.Read()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Error("failed to read config", "err", err)
+		os.Exit(1)
 	}
 
 	err = state.Init(currentConfig)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Error("failed to initialize state", "err", err)
+		os.Exit(1)
 	}
 }
 

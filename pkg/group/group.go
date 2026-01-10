@@ -71,6 +71,7 @@ func (c *Client) Get(groupName string) (*config.GroupItem, error) {
 func (c *Client) Set(groupName string) error {
 	log := logger.New()
 	history := c.State.Group.History
+	log.Debug("setting group", "group", groupName)
 
 	if len(history) > 1 && groupName == PreviousGroupAlias {
 		groupName = string(history[len(history)-2])
@@ -102,7 +103,7 @@ func (c *Client) Set(groupName string) error {
 			return sourceName == item.Name
 		})
 		if !ok {
-			log.Warn("could not find source", log.Args("source", sourceName, "group", groupName))
+			log.Warn("could not find source", "source", sourceName, "group", groupName)
 			continue
 		}
 		match, err := source.ComputeFiles(&sourceMatch)
@@ -130,7 +131,7 @@ func (c *Client) Set(groupName string) error {
 			return err
 		}
 	} else {
-		log.Info("switched context", log.Args("context", apiConfig.CurrentContext))
+		log.Info("switched context", "context", apiConfig.CurrentContext)
 	}
 
 	// set new api config and modify state
@@ -138,7 +139,7 @@ func (c *Client) Set(groupName string) error {
 	c.State.Group.Active = groupName
 	c.State.Group.History = state.ComputeHistory(c.Config, state.History(groupName), c.State.Group.History)
 
-	log.Info("switched group", log.Args("group", groupName))
+	log.Info("switched group", "group", groupName)
 	return nil
 }
 
