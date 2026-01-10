@@ -9,27 +9,24 @@ import (
 	"github.com/orbatschow/kontext/pkg/cmd/version"
 	"github.com/orbatschow/kontext/pkg/logger"
 	"github.com/pterm/pterm"
-	"github.com/rsteube/carapace"
+	"github.com/carapace-sh/carapace"
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
-	Use:    "kontext",
-	Short:  "manage kubernetes config files, contexts, groups and sources",
-	PreRun: set.Init,
-	Run: func(cmd *cobra.Command, args []string) {
-		set.NewSetContextCommand(cmd, args)
-	},
+	Use:   "kontext",
+	Short: "manage kubernetes config files, contexts, groups and sources",
+}
+
+func init() {
+	rootCmd.PersistentFlags().IntVarP(&logger.Verbosity, "verbosity", "v", logger.DefaultVerbosity, "verbose output")
 }
 
 func Execute() {
-	// add commands
 	rootCmd.AddCommand(get.NewCommand())
 	rootCmd.AddCommand(set.NewCommand())
 	rootCmd.AddCommand(reload.NewCommand())
 	rootCmd.AddCommand(version.NewCommand())
-
-	rootCmd.PersistentFlags().IntVarP(&logger.Verbosity, "verbosity", "v", logger.DefaultVerbosity, "verbose output")
 
 	carapace.Gen(rootCmd)
 

@@ -2,19 +2,13 @@ package get
 
 import (
 	"log"
-	"os"
 
 	"github.com/orbatschow/kontext/pkg/config"
-	"github.com/orbatschow/kontext/pkg/context"
-	"github.com/orbatschow/kontext/pkg/group"
-	"github.com/orbatschow/kontext/pkg/logger"
 	"github.com/orbatschow/kontext/pkg/state"
 	"github.com/spf13/cobra"
 )
 
-// Init loads the current config and state
-func Init(_ *cobra.Command, _ []string) {
-	// load config
+func init_(_ *cobra.Command, _ []string) {
 	configClient := &config.Client{
 		File: config.DefaultConfigPath,
 	}
@@ -23,112 +17,19 @@ func Init(_ *cobra.Command, _ []string) {
 		log.Fatal(err.Error())
 	}
 
-	// initialize state
 	err = state.Init(currentConfig)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 }
 
-func newGetGroupCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:    "group [name]",
-		Short:  "get groups, optionally filtered by name",
-		PreRun: Init,
-		Run: func(cmd *cobra.Command, args []string) {
-			log := logger.New()
-			var groupName string
-
-			if len(args) > 0 {
-				groupName = args[0]
-			}
-
-			groupClient, err := group.New()
-			if err != nil {
-				log.Error(err.Error())
-				os.Exit(1)
-			}
-
-			var groups []config.GroupItem
-			if len(groupName) != 0 {
-				match, err := groupClient.Get(groupName)
-				if err != nil {
-					log.Error(err.Error())
-					os.Exit(1)
-				}
-				groups = append(groups, *match)
-			} else {
-				groups = groupClient.Config.Group.Items
-			}
-
-			printer := groupClient.BuildTablePrinter(groups...)
-			err = printer.Render()
-			if err != nil {
-				log.Error(err.Error())
-				os.Exit(1)
-			}
-		},
-	}
-	return cmd
-}
-
-func newGetContextCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:    "context [name]",
-		Short:  "get contexts, optionally filtered by name",
-		PreRun: Init,
-		Run: func(cmd *cobra.Command, args []string) {
-			log := logger.New()
-			var contextName string
-			if len(args) > 0 {
-				contextName = args[0]
-			}
-
-			contextClient, err := context.New()
-			if err != nil {
-				log.Error(err.Error())
-				os.Exit(1)
-			}
-
-			// if a context name is given, find it and render the result
-			if len(contextName) != 0 {
-				match, err := contextClient.Get(contextName)
-				if err != nil {
-					log.Error(err.Error())
-					os.Exit(1)
-				}
-				printer := contextClient.BuildTablePrinter(match)
-				err = printer.Render()
-				if err != nil {
-					log.Error(err.Error())
-					os.Exit(1)
-				}
-			} else {
-				// if no context name is given, find all groups and render the result
-				match := contextClient.List()
-				printer := contextClient.BuildTablePrinter(match)
-				err = printer.Render()
-				if err != nil {
-					log.Error(err.Error())
-					os.Exit(1)
-				}
-			}
-		},
-	}
-	return cmd
-}
-
 func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get",
 		Short: "get [context|group] [name], defaults to context",
-		Run: func(cmd *cobra.Command, args []string) {
-			_ = cmd.Help()
-			os.Exit(1)
-		},
 	}
 
-	cmd.AddCommand(newGetGroupCommand())
-	cmd.AddCommand(newGetContextCommand())
+	cmd.AddCommand(newGroupCommand())
+	cmd.AddCommand(newContextCommand())
 	return cmd
 }
