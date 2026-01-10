@@ -194,7 +194,7 @@ func Test_Write(t *testing.T) {
 					},
 				},
 			},
-			want:    []byte(`{"group":{"active":"dev"},"context":{"active":"kind-dev"},"backup":{}}`),
+			want:    []byte(`{"group":{"active":"dev"},"context":{"active":"kind-dev"}}`),
 			wantErr: false,
 		},
 		{
@@ -220,7 +220,7 @@ func Test_Write(t *testing.T) {
 					},
 				},
 			},
-			want:    []byte(`{"group":{"active":"dev","history":["dev"]},"context":{},"backup":{}}`),
+			want:    []byte(`{"group":{"active":"dev","history":["dev"]},"context":{}}`),
 			wantErr: false,
 		},
 	}

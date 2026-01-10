@@ -91,16 +91,6 @@ your operating system:
 |--------------------------------|--------------------------------|-----------------------------------|
 | ~/.config/kontext/kontext.yaml | ~/.config/kontext/kontext.yaml | LocalAppData\kontext\kontext.yaml |
 
-## Backups
-
-As kontext will override your kubeconfig file pretty often, it allows you to configure backups. All
-backups are placed within a dedicated backup directory, that can be configured within the configuration file.
-There are defaults, that are specific to all operating systems:
-
-| Linux                         | MacOS                                        | Windows                     |
-|-------------------------------|----------------------------------------------|-----------------------------|
-| ~/.local/share/kontext/backup | ~/Library/Application Support/kontext/backup | LocalAppData\kontext\backup |
-
 ## Contributing
 
 Contributions are always welcome, have a look at the [contributing](docs/contributing.md) guidelines to get started.

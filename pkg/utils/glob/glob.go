@@ -10,7 +10,7 @@ import (
 
 type Pattern string
 
-// Expand takes a glob and returns a slice of absolute filepaths
+// Expand takes a glob pattern and returns a slice of opened files
 func Expand(glob Pattern) ([]*os.File, error) {
 	var buffer []*os.File
 

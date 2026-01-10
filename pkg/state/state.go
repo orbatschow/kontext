@@ -14,7 +14,6 @@ import (
 )
 
 type History string
-type Revision string
 
 type Group struct {
 	Active  string    `json:"active,omitempty"`
@@ -26,14 +25,9 @@ type Context struct {
 	History []History `json:"history,omitempty"`
 }
 
-type Backup struct {
-	Revisions []Revision `json:"revisions,omitempty"`
-}
-
 type State struct {
 	Group   Group   `json:"group"`
 	Context Context `json:"context"`
-	Backup  Backup  `json:"backup"`
 }
 
 const DefaultMaximumHistorySize = 10

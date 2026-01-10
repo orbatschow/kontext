@@ -18,7 +18,7 @@ func (c *Client) buildInteractiveSelectPrinter() (*pterm.InteractiveSelectPrinte
 	}
 
 	// get the active group
-	group, ok := lo.Find(c.Config.Group.Items, func(item config.GroupItem) bool {
+	group, ok := lo.Find(c.Config.Groups.Items, func(item config.GroupItem) bool {
 		return item.Name == c.State.Group.Active
 	})
 	if !ok {

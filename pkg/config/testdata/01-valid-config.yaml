@@ -1,14 +1,10 @@
 global:
   kubeconfig: "$HOME/.config/kontext/kubeconfig.yaml"
-  verbosity: 3
-
-backup:
-  enabled: true
 
 state:
   file: $HOME/.local/state/kontext/state.json
 
-group:
+groups:
   items:
     - name: default
       context:
@@ -26,7 +22,7 @@ group:
     sort: asc
 
 
-source:
+sources:
   items:
     - name: default
       include:

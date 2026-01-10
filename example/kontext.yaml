@@ -2,7 +2,6 @@
 global:
   # target kubeconfig file for kontext, all sources will be merged into this file
   # will be replaced each time a group/context is set
-  # see .backup for backup/restore options
   kubeconfig: "$HOME/.config/kontext/kubeconfig.yaml"
 
 # state configuration options
@@ -10,19 +9,8 @@ state:
   # override the default state file path
   file: "$HOME/.local/state/kontext/state.json"
 
-# backup configuration settings
-# backup targets:
-# - .global.kubeconfig
-backup:
-  # enable the backup, defaults to true
-  enabled: "true"
-  # override the default backup directory
-  directory: "$HOME/.local/share/kontext/backup"
-  # override the maximum number of kubeconfig files, that shall be kept by kontext
-  revisions: 10
-
-# group configuration options
-group:
+# groups configuration options
+groups:
   # define groups
   items:
     # a group named "default"
@@ -78,7 +66,7 @@ group:
 
 
 # define all sources, that are used by groups
-source:
+sources:
   items:
     # a source called primary, that defines one include and one exclude glob
     - name: "primary"
