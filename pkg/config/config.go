@@ -16,8 +16,7 @@ var (
 )
 
 const (
-	DefaultStateHistoryLimit   = 10
-	DefaultBackupRevisionLimit = 10
+	DefaultStateHistoryLimit = 10
 )
 
 type Client struct {
@@ -28,7 +27,6 @@ type Client struct {
 type Config struct {
 	Global Global `json:"global,omitempty"`
 	State  State  `json:"state,omitempty"`
-	Backup Backup `json:"backup,omitempty"`
 	Group  Group  `json:"group,omitempty"`
 	Source Source `json:"source,omitempty"`
 }
@@ -47,16 +45,6 @@ type State struct {
 type History struct {
 	// set the maximum history size
 	Size int `json:"size"`
-}
-
-// Backup configuration options
-type Backup struct {
-	// enable/disable the backup, defaults to true
-	Enabled bool `json:"enabled"`
-	// set the backup directory
-	Directory string `json:"directory,omitempty"`
-	// set the maximum backup revision count
-	Revisions int `json:"revisions,omitempty"`
 }
 
 // Group configuration Options
@@ -107,11 +95,6 @@ func (r *Client) Read() (*Config, error) {
 		Global: Global{
 			Kubeconfig: os.Getenv("KUBECONFIG"),
 		},
-		Backup: Backup{
-			Enabled:   true,
-			Directory: filepath.Join(xdg.DataHome, "kontext", "backup"),
-			Revisions: DefaultBackupRevisionLimit,
-		},
 		State: State{
 			History: History{
 				Size: DefaultStateHistoryLimit,
@@ -135,7 +118,6 @@ func (r *Client) Read() (*Config, error) {
 
 func expandEnvironment(config *Config) {
 	config.Global.Kubeconfig = os.ExpandEnv(config.Global.Kubeconfig)
-	config.Backup.Directory = os.ExpandEnv(config.Backup.Directory)
 	config.State.File = os.ExpandEnv(config.State.File)
 
 	for i, source := range config.Source.Items {

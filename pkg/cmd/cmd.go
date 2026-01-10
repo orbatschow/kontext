@@ -9,6 +9,7 @@ import (
 	"github.com/orbatschow/kontext/pkg/cmd/version"
 	"github.com/orbatschow/kontext/pkg/logger"
 	"github.com/pterm/pterm"
+	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 )
 
@@ -29,6 +30,8 @@ func Execute() {
 	rootCmd.AddCommand(version.NewCommand())
 
 	rootCmd.PersistentFlags().IntVarP(&logger.Verbosity, "verbosity", "v", logger.DefaultVerbosity, "verbose output")
+
+	carapace.Gen(rootCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		pterm.Printfln("%v", err)

@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Init loads the current config and state
 func Init(_ *cobra.Command, _ []string) {
 	// load config
 	configClient := &config.Client{

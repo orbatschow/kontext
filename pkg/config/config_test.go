@@ -37,9 +37,6 @@ func Test_Read(t *testing.T) {
 				Global: Global{
 					Kubeconfig: filepath.Join(xdg.ConfigHome, "kontext", "kubeconfig.yaml"),
 				},
-				Backup: Backup{
-					Enabled: true,
-				},
 				State: State{
 					File:    filepath.Join(xdg.StateHome, "kontext", "state.json"),
 					History: History{},
@@ -128,11 +125,6 @@ func Test_Read(t *testing.T) {
 
 						return path
 					}(),
-				},
-				Backup: Backup{
-					Enabled:   true,
-					Revisions: DefaultBackupRevisionLimit,
-					Directory: filepath.Join(xdg.DataHome, "kontext", "backup"),
 				},
 				State: State{
 					File: filepath.Join(xdg.StateHome, "kontext", "state.json"),

@@ -10,8 +10,12 @@ import (
 
 type Pattern string
 
+type Glob interface {
+	Expand(glob Pattern) (*[]os.File, error)
+}
+
 // Expand takes a glob and returns a slice of absolute filepaths
-func Expand(glob Pattern) ([]*os.File, error) {
+func (g *Glob) Expand(glob Pattern) ([]*os.File, error) {
 	var buffer []*os.File
 
 	basePath, pattern := doublestar.SplitPattern(string(glob))
