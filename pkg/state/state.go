@@ -84,13 +84,18 @@ func Read(config *config.Config) (*State, error) {
 func Write(config *config.Config, state *State) error {
 	log := logger.New()
 
-	// marshal the state into json with indentation for readable logs
-	buffer, err := json.MarshalIndent(state, "", "  ")
+	// marshal the state into json for the file
+	buffer, err := json.Marshal(state)
 	if err != nil {
 		return err
 	}
 
-	log.Debug("updating state", "data", string(buffer))
+	// create pretty JSON for logging
+	prettyBuffer, err := json.MarshalIndent(state, "", "  ")
+	if err != nil {
+		return err
+	}
+	log.Debug("updating state", "data", string(prettyBuffer))
 
 	// write the state into the state file
 	err = os.WriteFile(config.State.File, buffer, 0600)
