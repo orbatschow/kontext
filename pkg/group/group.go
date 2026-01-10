@@ -58,7 +58,7 @@ func New() (*Client, error) {
 }
 
 func (c *Client) Get(groupName string) (*config.GroupItem, error) {
-	match, ok := lo.Find(c.Config.Group.Items, func(item config.GroupItem) bool {
+	match, ok := lo.Find(c.Config.Groups.Items, func(item config.GroupItem) bool {
 		return item.Name == groupName
 	})
 	if !ok {
@@ -90,7 +90,7 @@ func (c *Client) Set(groupName string) error {
 
 	var files []*os.File
 
-	group, ok := lo.Find(c.Config.Group.Items, func(item config.GroupItem) bool {
+	group, ok := lo.Find(c.Config.Groups.Items, func(item config.GroupItem) bool {
 		return item.Name == groupName
 	})
 	if !ok {
@@ -98,7 +98,7 @@ func (c *Client) Set(groupName string) error {
 	}
 
 	for _, sourceName := range group.Sources {
-		sourceMatch, ok := lo.Find(c.Config.Source.Items, func(item config.SourceItem) bool {
+		sourceMatch, ok := lo.Find(c.Config.Sources.Items, func(item config.SourceItem) bool {
 			return sourceName == item.Name
 		})
 		if !ok {

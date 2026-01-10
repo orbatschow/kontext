@@ -41,7 +41,7 @@ func Test_Read(t *testing.T) {
 					File:    filepath.Join(xdg.StateHome, "kontext", "state.json"),
 					History: History{},
 				},
-				Group: Group{
+				Groups: Group{
 					Items: []GroupItem{
 						{
 							Name: "default",
@@ -69,7 +69,7 @@ func Test_Read(t *testing.T) {
 						Sort:    "asc",
 					},
 				},
-				Source: Source{
+				Sources: Source{
 					Items: []SourceItem{{
 						Name: "default",
 						Include: []string{
@@ -132,11 +132,11 @@ func Test_Read(t *testing.T) {
 						Size: DefaultStateHistoryLimit,
 					},
 				},
-				Group: Group{
+				Groups: Group{
 					Items:     []GroupItem{},
 					Selection: Selection{},
 				},
-				Source: Source{
+				Sources: Source{
 					Items: []SourceItem{},
 				},
 			},

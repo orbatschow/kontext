@@ -13,7 +13,7 @@ func Group() carapace.Action {
 		}
 
 		var values []string
-		for _, g := range client.Config.Group.Items {
+		for _, g := range client.Config.Groups.Items {
 			values = append(values, g.Name)
 		}
 

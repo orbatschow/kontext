@@ -30,8 +30,8 @@ type Client struct {
 type Config struct {
 	Global Global `json:"global,omitempty"`
 	State  State  `json:"state,omitempty"`
-	Group  Group  `json:"group,omitempty"`
-	Source Source `json:"source,omitempty"`
+	Groups Group  `json:"groups,omitempty"`
+	Sources Source `json:"sources,omitempty"`
 }
 
 type Global struct {
@@ -128,13 +128,13 @@ func expandEnvironment(config *Config) {
 	config.Global.Kubeconfig = os.ExpandEnv(config.Global.Kubeconfig)
 	config.State.File = os.ExpandEnv(config.State.File)
 
-	for i, source := range config.Source.Items {
+	for i, source := range config.Sources.Items {
 		for j, include := range source.Include {
 			source.Include[j] = os.ExpandEnv(include)
 		}
 		for j, exclude := range source.Exclude {
 			source.Exclude[j] = os.ExpandEnv(exclude)
 		}
-		config.Source.Items[i] = source
+		config.Sources.Items[i] = source
 	}
 }

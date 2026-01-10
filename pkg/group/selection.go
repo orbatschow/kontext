@@ -13,12 +13,12 @@ import (
 func (c *Client) buildInteractiveSelectPrinter() (*pterm.InteractiveSelectPrinter, error) {
 	// compute all selection options
 	var keys []string
-	for _, value := range c.Config.Group.Items {
+	for _, value := range c.Config.Groups.Items {
 		keys = append(keys, value.Name)
 	}
 
 	// sort the selection
-	switch c.Config.Group.Selection.Sort {
+	switch c.Config.Groups.Selection.Sort {
 	case SortAsc:
 		sort.Strings(keys)
 	case SortDesc:
@@ -30,7 +30,7 @@ func (c *Client) buildInteractiveSelectPrinter() (*pterm.InteractiveSelectPrinte
 		WithOptions(keys)
 
 	// check if there are defaults for the selection and set them accordingly
-	switch c.Config.Group.Selection.Default {
+	switch c.Config.Groups.Selection.Default {
 	// if the default is empty, return without setting default option
 	case "":
 		return selector, nil
@@ -40,13 +40,13 @@ func (c *Client) buildInteractiveSelectPrinter() (*pterm.InteractiveSelectPrinte
 	// search for the given default selection group
 	default:
 		// get the default selection group
-		_, ok := lo.Find(c.Config.Group.Items, func(item config.GroupItem) bool {
-			return item.Name == c.Config.Group.Selection.Default
+		_, ok := lo.Find(c.Config.Groups.Items, func(item config.GroupItem) bool {
+			return item.Name == c.Config.Groups.Selection.Default
 		})
 		if !ok {
 			return nil, fmt.Errorf("could not find default selection group: '%s'", c.State.Group.Active)
 		}
 
-		return selector.WithDefaultOption(c.Config.Group.Selection.Default), nil
+		return selector.WithDefaultOption(c.Config.Groups.Selection.Default), nil
 	}
 }

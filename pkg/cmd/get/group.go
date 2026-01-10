@@ -39,7 +39,7 @@ func newGroupCommand() *cobra.Command {
 				}
 				groups = append(groups, *match)
 			} else {
-				groups = groupClient.Config.Group.Items
+				groups = groupClient.Config.Groups.Items
 			}
 
 			printer := groupClient.BuildTablePrinter(groups...)
