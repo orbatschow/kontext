@@ -25,13 +25,12 @@ func init_(_ *cobra.Command, _ []string) {
 
 func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "set [name]",
-		Short: "set [context|group] [name]",
-		Long: `Invoking this command without a parameter will spawn an interactive selection dialog.
-When providing a context name, the switch will be performed immediately.
-'-' is a reserved context name, that will cause a switch to the previously active context.
-If neither, context nor group is specified, this command will set the context.
-		`,
+		Use:   "set",
+		Short: "Switch the active context or group",
+		Long: `Change the active Kubernetes context or group.
+
+When called without arguments, opens an interactive selection dialog for the active group's contexts.
+Use 'set context' or 'set group' subcommands for more control.`,
 	}
 
 	cmd.AddCommand(newGroupCommand())

@@ -15,7 +15,9 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "kontext",
-	Short: "manage kubernetes config files, contexts, groups and sources",
+	Short: "Manage Kubernetes kubeconfig files, contexts, and groups",
+	Long: `Kontext helps you manage multiple Kubernetes kubeconfig files by organizing them
+into groups and providing quick switching between contexts and clusters.`,
 }
 
 func init() {

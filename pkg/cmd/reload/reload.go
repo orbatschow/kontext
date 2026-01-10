@@ -63,7 +63,11 @@ func runReload(_ *cobra.Command, _ []string) {
 func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:    "reload",
-		Short:  "reload the active group",
+		Short: "Reload the active group",
+		Long: `Re-merge all kubeconfigs from the active group.
+
+This is useful when source kubeconfig files have been updated externally and you
+want to refresh the merged kubeconfig without switching groups.`,
 		PreRun: init_,
 		Run:    runReload,
 	}

@@ -54,11 +54,13 @@ func runSetContext(_ *cobra.Command, args []string) {
 func newContextCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "context [name]",
-		Short: "set context to active",
-		Long: `Invoking this command without a parameter will spawn an interactive selection dialog.
-When providing a context name, the switch will be performed immediately.
-'-' is a reserved context name, that will cause a switch to the previously active context.
-		`,
+		Short: "Switch to a different Kubernetes context",
+		Long: `Change the active Kubernetes context within the current group.
+
+Without a name, opens an interactive selection dialog showing contexts from the active group.
+With a name, immediately switches to that context.
+
+Use '-' as the context name to switch back to the previously active context.`,
 		PreRun: init_,
 		Run:    runSetContext,
 	}
