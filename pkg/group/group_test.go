@@ -28,7 +28,7 @@ func Test_Get(t *testing.T) {
 			args: args{
 				GroupName: "dev",
 				Config: &config.Config{
-					Group: config.Group{
+					Groups: config.Group{
 						Items: []config.GroupItem{
 							{
 								Name: "dev",
@@ -61,7 +61,7 @@ func Test_Get(t *testing.T) {
 			args: args{
 				GroupName: "dev",
 				Config: &config.Config{
-					Group: config.Group{},
+					Groups: config.Group{},
 				},
 			},
 			want:    nil,
@@ -117,7 +117,7 @@ func Test_Set(t *testing.T) {
 							Size: state.DefaultMaximumHistorySize,
 						},
 					},
-					Group: config.Group{
+					Groups: config.Group{
 						Items: []config.GroupItem{
 							{
 								Name: "dev",
@@ -127,7 +127,7 @@ func Test_Set(t *testing.T) {
 							},
 						},
 					},
-					Source: config.Source{
+					Sources: config.Source{
 						Items: []config.SourceItem{
 							{
 								Name:    "dev",
@@ -181,7 +181,7 @@ func Test_Set(t *testing.T) {
 							Size: state.DefaultMaximumHistorySize,
 						},
 					},
-					Group: config.Group{
+					Groups: config.Group{
 						Items: []config.GroupItem{
 							{
 								Name: "dev",
@@ -194,7 +194,7 @@ func Test_Set(t *testing.T) {
 							},
 						},
 					},
-					Source: config.Source{
+					Sources: config.Source{
 						Items: []config.SourceItem{
 							{
 								Name: "dev",
@@ -242,7 +242,7 @@ func Test_Set(t *testing.T) {
 			args: args{
 				GroupName: "dev",
 				Config: &config.Config{
-					Group: config.Group{
+					Groups: config.Group{
 						Items: []config.GroupItem{
 							{
 								Name: "dev",
@@ -255,7 +255,7 @@ func Test_Set(t *testing.T) {
 							},
 						},
 					},
-					Source: config.Source{
+					Sources: config.Source{
 						Items: []config.SourceItem{
 							{
 								Name: "dev",
@@ -346,7 +346,7 @@ func Test_Reload(t *testing.T) {
 							Size: state.DefaultMaximumHistorySize,
 						},
 					},
-					Group: config.Group{
+					Groups: config.Group{
 						Items: []config.GroupItem{
 							{
 								Name: "dev",
@@ -356,7 +356,7 @@ func Test_Reload(t *testing.T) {
 							},
 						},
 					},
-					Source: config.Source{
+					Sources: config.Source{
 						Items: []config.SourceItem{
 							{
 								Name:    "dev",

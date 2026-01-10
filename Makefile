@@ -11,7 +11,7 @@ LOCALBIN ?= $(shell pwd)/bin
 
 # golang ci linter binary and version
 GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
-GOLANGCI_LINT_VERSION ?= v1.51.2
+GOLANGCI_LINT_VERSION ?= v1.64.8
 
 # tparse binary and version
 TPARSE ?= $(LOCALBIN)/tparse

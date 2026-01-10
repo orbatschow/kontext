@@ -28,9 +28,9 @@ type Client struct {
 }
 
 type Config struct {
-	Global Global `json:"global,omitempty"`
-	State  State  `json:"state,omitempty"`
-	Groups Group  `json:"groups,omitempty"`
+	Global  Global `json:"global,omitempty"`
+	State   State  `json:"state,omitempty"`
+	Groups  Group  `json:"groups,omitempty"`
 	Sources Source `json:"sources,omitempty"`
 }
 

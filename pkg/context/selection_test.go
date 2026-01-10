@@ -34,7 +34,7 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 					},
 				},
 				Config: &config.Config{
-					Group: config.Group{
+					Groups: config.Group{
 						Items: []config.GroupItem{
 							{
 								Name: "group-a",
@@ -82,7 +82,7 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 					},
 				},
 				Config: &config.Config{
-					Group: config.Group{
+					Groups: config.Group{
 						Items: []config.GroupItem{
 							{
 								Name: "group-a",
@@ -135,7 +135,7 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 					},
 				},
 				Config: &config.Config{
-					Group: config.Group{
+					Groups: config.Group{
 						Items: []config.GroupItem{
 							{
 								Name: "group-a",
@@ -188,7 +188,7 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 					},
 				},
 				Config: &config.Config{
-					Group: config.Group{
+					Groups: config.Group{
 						Items: []config.GroupItem{
 							{
 								Name: "group-a",
@@ -243,7 +243,7 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 					CurrentContext: "kind-b",
 				},
 				Config: &config.Config{
-					Group: config.Group{
+					Groups: config.Group{
 						Items: []config.GroupItem{
 							{
 								Name: "group-a",
@@ -294,7 +294,7 @@ func Test_buildInteractiveSelectPrinter(t *testing.T) {
 			args: args{
 				APIConfig: &api.Config{},
 				Config: &config.Config{
-					Group: config.Group{
+					Groups: config.Group{
 						Items: []config.GroupItem{
 							{
 								Name: "group-a",

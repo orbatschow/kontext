@@ -3,12 +3,12 @@ package set
 import (
 	"os"
 
+	"github.com/carapace-sh/carapace"
 	"github.com/orbatschow/kontext/pkg/completion"
 	"github.com/orbatschow/kontext/pkg/context"
 	"github.com/orbatschow/kontext/pkg/kubeconfig"
 	"github.com/orbatschow/kontext/pkg/logger"
 	"github.com/orbatschow/kontext/pkg/state"
-	"github.com/carapace-sh/carapace"
 	"github.com/spf13/cobra"
 )
 

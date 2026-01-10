@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+//revive:disable:var-naming
 func init_(_ *cobra.Command, _ []string) {
 	log := logger.New()
 	configClient := &config.Client{
